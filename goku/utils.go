@@ -3,7 +3,6 @@ package goku
 import (
 	"fmt"
 	"log"
-	"os"
 	"runtime/debug"
 	"strings"
 )
@@ -12,12 +11,13 @@ func (g *Generator) Debug(format string, args ...interface{}) {
 	if _, ok := g.params["debug"]; !ok {
 		return
 	}
-	g.gen.Debug(format, args...)
+	msg := fmt.Sprintf(format, args...)
+	log.Println(msg)
 }
 
 func (g *Generator) Warn(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	fmt.Fprintln(os.Stderr, "[WARN]", msg)
+	log.Println("[WARN]", msg)
 }
 
 // FatalOnErr 当 err!=nil 时报错并退出进程

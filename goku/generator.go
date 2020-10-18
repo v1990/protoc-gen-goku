@@ -4,7 +4,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	plugin "github.com/golang/protobuf/protoc-gen-go/plugin"
 	"github.com/v1990/protoc-gen-goku/descriptors"
-	"github.com/v1990/protoc-gen-goku/goku/internal"
 	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
 	"io"
 	"io/ioutil"
@@ -13,9 +12,6 @@ import (
 )
 
 type Generator struct {
-	// 以后要对这个 Generator 进行重构，所以将其作为内部包
-	gen *internal.Generator
-
 	conf   Config
 	params map[string]string
 
