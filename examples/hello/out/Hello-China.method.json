@@ -1,0 +1,6 @@
+{
+  "name": "China",
+  "input_type": ".hello.HelloChinaReq",
+  "output_type": ".hello.HelloChinaResp",
+  "options": {}
+}

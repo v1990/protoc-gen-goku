@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package common;
+
+option go_package = "github.com/v1990/protoc-gen-goku/examples/eshop/proto/out_go/common;proto_common";
+
+// 客户端请求头
+message ReqHead{
+  // 客户端请求序列号
+  uint64 seq = 1;
+}
+
+// 服务端响应头
+message RespHead{
+  // 客户端请求序列号
+  uint64 seq = 1;
+}
+
+// 认证token
+message AuthToken{
+  string accessToken = 1;
+  string tokenType = 2;
+}
+
+// 公共错误信息
+message Error{
+  int32 code = 1;
+  string detail = 2;
+}

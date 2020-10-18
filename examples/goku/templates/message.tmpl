@@ -1,0 +1,220 @@
+{{- /*
+    当前环境的变量定义，方便维护(为了IDE的语法高亮😂)
+*/}}
+{{- $Message := .Message}}
+{{- $TypeName := .TypeName|title }}
+{{- $StructName := $TypeName}}
+{{- $Interface := printf "%sInterface" .TypeName|title}}
+{{- $PbStruct := .TypeName|title }}
+{{- $FieldFormat := "proto3"}}
+
+
+{{- .CopyRight}}
+
+package {{.outPkg}}
+
+{{- $pbPkg := GoImport .pbPkg }}
+{{- $bytesPkg := GoImport "bytes" }}
+{{- $jsonPbPkg := GoImport "github.com/gogo/protobuf/jsonpb" }}
+import (
+    {{$pbPkg.Import}}
+    {{$bytesPkg.Import}}
+    {{$jsonPbPkg.Import}}
+)
+
+{{/*
+
+// {{$TypeName}}
+//   See {{$pbPkg}}.{{$TypeName}}
+{{- with $Message.Comments.LeadingComments}}{{"\n"}} {{ .|withLineSlash }} {{else}}  {{end}}
+type {{$Interface}} interface{
+    DescriptorCommon
+
+    // 获取原始的 descriptor 对象
+    {{$StructName}}()*{{$pbPkg}}.{{$StructName}}
+    PbDescriptor()*{{$pbPkg}}.{{$StructName}}
+
+{{range $Message.Field}}
+    {{- $FieldName := camelcase .Base}}
+    {{- $RetType := GoFormatField  . $FieldFormat  }}
+
+    {{with .Comments.LeadingDetachedComments}} {{ .|contact|join "\n"|withLineSlash }} {{end}}
+
+    // {{$FieldName}}
+    //   See {{$pbPkg}}.{{$TypeName}}.{{$FieldName}}
+    {{- with .Comments.LeadingComments}}{{"\n"}} {{ .|withLineSlash }} {{else}}  {{end}}
+    //  SourceCodeInfo.Location.Path: {{.LocationPath}}
+    //  {{showJSON . 0}}
+    Get{{$FieldName}}(){{$RetType}}    {{with .Comments.TrailingComments}}  {{.|withLineSlash}} {{end}}
+
+{{end}}
+}
+*/}}
+
+{{/* LeadingDetachedComments 独立注释 */}}
+{{- with $Message.Comments.LeadingDetachedComments}} {{ .|contact|join "\n"|withLineSlash }} {{end}}
+
+{{- with $Message.Comments.LeadingComments}} {{ .|withLineSlash }}  {{end}}
+{{- with $Message.Comments.TrailingComments}} {{"\n//\n"}}  {{.|withLineSlash}} {{end}}
+//   See: {{$pbPkg}}.{{$StructName}}
+type {{$StructName}} struct{
+    common
+
+    pb *{{$pbPkg}}.{{$PbStruct}}
+
+    {{range $Message.Field}}
+        {{if eq .Type "TYPE_MESSAGE"}}
+            {{- $fieldName:=snakecase .Name}}
+            {{- $RetType := .|GoType|toString  }}
+            {{$fieldName}} {{$RetType}}
+        {{end}}
+    {{end}}
+    {{if eq $Message.Name "FileDescriptorProto"}}
+        locByPath map[string]*SourceCodeInfo_Location
+    {{end}}
+}
+
+func new{{$StructName}}(desc *{{$pbPkg}}.{{$StructName}})*{{$StructName}}{
+    t:=new({{$StructName}})
+    t.pb = desc
+
+    t.setDescriptor(t)
+
+    return t
+}
+
+{{- /*********************************
+    遍历每个字段，生成对应的Getter
+    - GetField()
+    - Field()
+*************************************/}}
+{{range $Message.Field}}
+{{- $FieldName := camelcase .Name}}
+{{- $fieldName:=snakecase .Name}}
+{{- $RetType := .|GoType  }}
+{{- $Getter := printf "Get%s" $FieldName}}
+
+{{with .Comments.LeadingDetachedComments}} {{ .|contact|join "\n"|withLineSlash }} {{end}}
+
+{{- with .Comments.LeadingComments}} {{ .|withLineSlash }}  {{end}}
+{{- with .Comments.TrailingComments}} {{"\n//\n"}}  {{.|withLineSlash}} {{end}}
+//   See {{$pbPkg}}.{{$TypeName}} {{$TypeName}}.{{$FieldName}}
+//   SourceCodeInfo.Location.Path: {{.LocationPath}}
+//   proto info: {{showJSON . 0}}
+func(t *{{$StructName}}){{$Getter}}() (ret {{$RetType}}) {
+    if t.Empty() {
+        return
+    }
+    {{if eq .Type "TYPE_MESSAGE"}}
+        if t.{{$fieldName}} !=nil {
+            return t.{{$fieldName}}
+        }
+        {{if eq .Label "LABEL_REPEATED"}}{{/*message数组*/}}
+            t.{{$fieldName}} = make({{$RetType}},len(t.pb.{{$Getter}}()))
+            {{$retStruct := $RetType.Base}}
+            for i,item := range t.pb.{{$Getter}}(){
+                elem := new{{$retStruct}}(item)
+                elem.setParent(t)
+                elem.setIndex(i)
+                t.{{$fieldName}}[i] = elem
+            }
+        {{else}} {{/*普通message*/}}
+            {{$retStrct :=  $RetType.Base}}
+            t.{{$fieldName}} = new{{$retStrct}}(t.pb.{{$Getter}}())
+            t.{{$fieldName}}.setParent(t)
+        {{end}}
+
+        return t.{{$fieldName}}
+    {{else}}
+        return t.pb.Get{{$FieldName}}()
+    {{end}}
+} {{- /* end method GetField() */}}
+
+func(t *{{$StructName}}){{$FieldName}}()({{$RetType}}){
+    return t.{{$Getter}}()
+}
+
+
+{{- /* range Fields */}}{{end}}
+
+{{/*  其他公共的方法 */}}
+
+func (t *{{$StructName}})PbDescriptor()*{{$pbPkg}}.{{$StructName}}{
+    if t == nil || t.pb ==nil {
+        return nil
+    }
+    return t.pb
+}
+
+func (t *{{$StructName}}){{$StructName}}()*{{$pbPkg}}.{{$StructName}}{
+    return t.PbDescriptor()
+}
+
+func (t *{{$StructName}}) MarshalJSON() (b []byte,err error) {
+    if t.Empty() {
+        return
+    }
+    buf := {{$bytesPkg}}.NewBuffer(nil)
+    err = (&{{$jsonPbPkg}}.Marshaler{}).Marshal(buf, t.pb)
+    return buf.Bytes(), err
+}
+
+
+// implement DescriptorCommon.Empty()
+func (t *{{$StructName}})Empty() bool {
+    return t == nil || t.pb == nil
+}
+
+// implement DescriptorCommon.Index()
+func (t *{{$StructName}})Index() int {
+    if t.Empty(){
+        return -1
+    }
+
+    return t.getIndex()
+}
+
+// implement DescriptorCommon.File()
+func (t *{{$StructName}})File() *FileDescriptorProto {
+    if t.Empty(){
+        return nil
+    }
+
+    return t.getFile()
+}
+
+// implement DescriptorCommon.Parent()
+func (t *{{$StructName}})Parent() DescriptorCommon {
+    if t.Empty(){
+        return nil
+    }
+
+    return t.getParent()
+}
+
+// implement DescriptorCommon.LocationPath()
+func (t *{{$StructName}})LocationPath() LocationPath {
+    if t.Empty(){
+        return nil
+    }
+
+    return t.getLocationPath()
+}
+
+
+{{if (in $Message.Name "DescriptorProto" "EnumDescriptorProto")}}
+// implement Nestable.IsNested()
+func (t *{{$StructName}}) IsNested() bool {
+    if t.Empty(){
+        return false
+    }
+    return t.isNested()
+}
+// implement Nestable.ParentMessage()
+func (t *{{$StructName}}) ParentMessage() *DescriptorProto {
+    if t.Empty() {
+        return nil
+    }
+    return t.parentMessage()
+}
+{{end}}

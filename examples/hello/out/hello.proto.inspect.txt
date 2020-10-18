@@ -1,0 +1,56 @@
+inspect hello.proto
+=================================
+{
+  "name": "hello.proto",
+  "package": "hello",
+  "message_type": [
+    {"name": "HelloWorldReq","field": [{"name": "in","number": 1,"label": 1,"type": 9,"json_name": "in"},{"name": "i32","number": 2,"label": 1,"type": 5,"json_name": "i32"},{"name": "u32","number": 3,"label": 1,"type": 13,"json_name": "u32"},{"name": "i64","number": 4,"label": 1,"type": 3,"json_name": "i64"},{"name": "u64","number": 5,"label": 1,"type": 4,"json_name": "u64"},{"name": "f64","number": 6,"label": 1,"type": 2,"json_name": "f64"}]},
+    {"name": "HelloWorldResp","field": [{"name": "out","number": 1,"label": 1,"type": 9,"json_name": "out"}]},
+    {"name": "HelloChinaReq","field": [{"name": "in","number": 1,"label": 1,"type": 9,"json_name": "in"}]},
+    {"name": "HelloChinaResp","field": [{"name": "out","number": 1,"label": 1,"type": 9,"json_name": "out"}]}
+  ],
+  "enum_type": [
+    {"name": "Color","value": [{"name": "None","number": 0},{"name": "Blue","number": 1},{"name": "Red","number": 2},{"name": "Yellow","number": 3}]}
+  ],
+  "service": [
+    {"name": "Hello","method": [{"name": "World","input_type": ".hello.HelloWorldReq","output_type": ".hello.HelloWorldResp","options": {}},{"name": "China","input_type": ".hello.HelloChinaReq","output_type": ".hello.HelloChinaResp","options": {}}]}
+  ],
+  "options": {
+    "go_package": "github.com/v1990/protoc-gen-goku/examples/proto/hello;proto_hello"
+  },
+  "source_code_info": {
+    "location": [{"span": [0,0,39,1]},{"path": [12],"span": [0,0,18]},{"path": [2],"span": [2,0,14]},{"path": [8],"span": [4,0,88]},{"path": [8,11],"span": [4,0,88]},{"path": [6,0],"span": [6,0,9,1]},{"path": [6,0,1],"span": [6,8,13]},{"path": [6,0,2,0],"span": [7,2,51]},{"path": [6,0,2,0,1],"span": [7,6,11]},{"path": [6,0,2,0,2],"span": [7,12,25]},{"path": [6,0,2,0,3],"span": [7,34,48]},{"path": [6,0,2,1],"span": [8,2,51]},{"path": [6,0,2,1,1],"span": [8,6,11]},{"path": [6,0,2,1,2],"span": [8,12,25]},{"path": [6,0,2,1,3],"span": [8,34,48]},{"path": [4,0],"span": [11,0,22,1]},{"path": [4,0,1],"span": [11,8,21]},{"path": [4,0,2,0],"span": [12,2,16]},{"path": [4,0,2,0,4],"span": [12,2,11,22]},{"path": [4,0,2,0,5],"span": [12,2,8]},{"path": [4,0,2,0,1],"span": [12,9,11]},{"path": [4,0,2,0,3],"span": [12,14,15]},{"path": [4,0,2,1],"span": [14,2,16]},{"path": [4,0,2,1,4],"span": [14,2,12,16]},{"path": [4,0,2,1,5],"span": [14,2,7]},{"path": [4,0,2,1,1],"span": [14,8,11]},{"path": [4,0,2,1,3],"span": [14,14,15]},{"path": [4,0,2,2],"span": [15,2,17]},{"path": [4,0,2,2,4],"span": [15,2,14,16]},{"path": [4,0,2,2,5],"span": [15,2,8]},{"path": [4,0,2,2,1],"span": [15,9,12]},{"path": [4,0,2,2,3],"span": [15,15,16]},{"path": [4,0,2,3],"span": [16,2,16]},{"path": [4,0,2,3,4],"span": [16,2,15,17]},{"path": [4,0,2,3,5],"span": [16,2,7]},{"path": [4,0,2,3,1],"span": [16,8,11]},{"path": [4,0,2,3,3],"span": [16,14,15]},{"path": [4,0,2,4],"span": [17,2,17]},{"path": [4,0,2,4,4],"span": [17,2,16,16]},{"path": [4,0,2,4,5],"span": [17,2,8]},{"path": [4,0,2,4,1],"span": [17,9,12]},{"path": [4,0,2,4,3],"span": [17,15,16]},{"path": [4,0,2,5],"span": [18,2,16]},{"path": [4,0,2,5,4],"span": [18,2,17,17]},{"path": [4,0,2,5,5],"span": [18,2,7]},{"path": [4,0,2,5,1],"span": [18,8,11]},{"path": [4,0,2,5,3],"span": [18,14,15]},{"path": [4,1],"span": [23,0,25,1]},{"path": [4,1,1],"span": [23,8,22]},{"path": [4,1,2,0],"span": [24,2,17]},{"path": [4,1,2,0,4],"span": [24,2,23,23]},{"path": [4,1,2,0,5],"span": [24,2,8]},{"path": [4,1,2,0,1],"span": [24,9,12]},{"path": [4,1,2,0,3],"span": [24,15,16]},{"path": [4,2],"span": [27,0,29,1]},{"path": [4,2,1],"span": [27,8,21]},{"path": [4,2,2,0],"span": [28,2,16]},{"path": [4,2,2,0,4],"span": [28,2,27,22]},{"path": [4,2,2,0,5],"span": [28,2,8]},{"path": [4,2,2,0,1],"span": [28,9,11]},{"path": [4,2,2,0,3],"span": [28,14,15]},{"path": [4,3],"span": [30,0,32,1]},{"path": [4,3,1],"span": [30,8,22]},{"path": [4,3,2,0],"span": [31,2,17]},{"path": [4,3,2,0,4],"span": [31,2,30,23]},{"path": [4,3,2,0,5],"span": [31,2,8]},{"path": [4,3,2,0,1],"span": [31,9,12]},{"path": [4,3,2,0,3],"span": [31,15,16]},{"path": [5,0],"span": [34,0,39,1]},{"path": [5,0,1],"span": [34,5,10]},{"path": [5,0,2,0],"span": [35,2,11]},{"path": [5,0,2,0,1],"span": [35,2,6]},{"path": [5,0,2,0,2],"span": [35,9,10]},{"path": [5,0,2,1],"span": [36,2,11]},{"path": [5,0,2,1,1],"span": [36,2,6]},{"path": [5,0,2,1,2],"span": [36,9,10]},{"path": [5,0,2,2],"span": [37,2,10]},{"path": [5,0,2,2,1],"span": [37,2,5]},{"path": [5,0,2,2,2],"span": [37,8,9]},{"path": [5,0,2,3],"span": [38,2,13]},{"path": [5,0,2,3,1],"span": [38,2,8]},{"path": [5,0,2,3,2],"span": [38,11,12]}
+    ]
+  },
+  "syntax": "proto3"
+}
+
+## List Message
+- message: HelloWorldReq
+    - field: in  {"name": "in","number": 1,"label": 1,"type": 9,"json_name": "in"}
+        1 LABEL_OPTIONAL TYPE_STRING in
+    - field: i32  {"name": "i32","number": 2,"label": 1,"type": 5,"json_name": "i32"}
+        2 LABEL_OPTIONAL TYPE_INT32 i32
+    - field: u32  {"name": "u32","number": 3,"label": 1,"type": 13,"json_name": "u32"}
+        3 LABEL_OPTIONAL TYPE_UINT32 u32
+    - field: i64  {"name": "i64","number": 4,"label": 1,"type": 3,"json_name": "i64"}
+        4 LABEL_OPTIONAL TYPE_INT64 i64
+    - field: u64  {"name": "u64","number": 5,"label": 1,"type": 4,"json_name": "u64"}
+        5 LABEL_OPTIONAL TYPE_UINT64 u64
+    - field: f64  {"name": "f64","number": 6,"label": 1,"type": 2,"json_name": "f64"}
+        6 LABEL_OPTIONAL TYPE_FLOAT f64
+    
+- message: HelloWorldResp
+    - field: out  {"name": "out","number": 1,"label": 1,"type": 9,"json_name": "out"}
+        1 LABEL_OPTIONAL TYPE_STRING out
+    
+- message: HelloChinaReq
+    - field: in  {"name": "in","number": 1,"label": 1,"type": 9,"json_name": "in"}
+        1 LABEL_OPTIONAL TYPE_STRING in
+    
+- message: HelloChinaResp
+    - field: out  {"name": "out","number": 1,"label": 1,"type": 9,"json_name": "out"}
+        1 LABEL_OPTIONAL TYPE_STRING out
+    
+
+

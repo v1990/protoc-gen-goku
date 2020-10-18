@@ -1,0 +1,94 @@
+# 全局变量 - 支持模版解析
+data:
+  # 注意：data是个map，并不知道谁先执行，所以切记不要相互引用
+  WORK_PATH: "{{.Params.workPath}}"
+  OUT_PATH : '{{.Params.workPath}}/out'
+  TMPL_PATH: '{{.Params.workPath}}/templates'
+  HOME_PATH: '{{env "HOME"}}'
+  ENV_NONE : '{{env "NOT_EXISTS_ENV" "defValue"}}'
+
+jobs:
+  ############## 任务参数示例 ###################
+  - #任务名称
+    name         : "base-example"
+
+    # 模板内容
+    template     : "{{showJSON . 2}}"
+    # template_path: 模板文件路径，
+    #   - 当【template】有内容时自动忽略
+    #   - 否则读取【template_path】作为模板内容
+    template_path: "{{.TMPL_PATH}}/hello.tmpl"
+
+    # 启用条件：
+    enable       :
+      # loop: 在哪个循环阶段启用【可选】
+      # -- 空表示所有阶段
+      loop:
+        - file # 遍历每个proto 【file】阶段
+        - service # 遍历每个【file】中的所有【service】阶段
+        - method # 遍历每个【service】中的所有【method】阶段
+      # if: 用户自定义条件【可选】：返回 "true"/"false"
+      #  - 支持模板解析：
+      #    1.此时还没有加载插件，所以不可使用插件提供的变量和函数
+      #    2.此时还没解析【job】级别的【data】，所以也不可使用，但是可使用全局的【data】
+      if  : '{{eq .MethodName "World"}}'
+
+    # 启用插件列表
+    plugins      : [ "golang" ]
+    # 输出内容插件列表
+    #  为空时使用 plugins
+    #  禁用插件则在前面加"-"
+    #  新增则直接写上新插件名称
+    out_plugins  : [ "-golang" ]
+
+    # data: job级别的外置数据 - 支持模板解析
+    #  - 可以使用插件提供的变量和函数
+    data         :
+      FileName    : "{{.File.GetName}}"
+      BaseFileName: "{{basename .File.GetName}}"
+      MethodName  : '{{.Method.GetName}}'
+
+    # out: 输出路径（默认就是输出到stderr）
+    #  - 支持模板解析：可以使用全部变量和函数
+    out          : "stderr"
+  ############################################
+
+
+  - name       : "show-builtin-func"
+    template   : "{{supportedFunc}}"
+    enable     :
+      loop: [ "file" ]
+    plugins    : [ "golang" ]
+    out_plugins: [ "-golang" ]
+    out        : "{{.OUT_PATH}}/show-builtin-func.txt"
+
+  - name    : "loop-file"
+    template: "{{showJSON .File}}"
+    enable  :
+      loop: [ "service" ]
+    out     : "{{.OUT_PATH}}/{{.File.GetName}}.json"
+
+  - name    : "loop-service"
+    template: "{{showJSON .Service}}"
+    enable  :
+      loop: [ "service" ]
+    out     : "{{.OUT_PATH}}/{{.Service.GetName}}.service.json"
+
+  - name    : "loop-method"
+    template: "{{showJSON .Method}}"
+    enable  :
+      loop: [ "method" ]
+    out     : "{{.OUT_PATH}}/{{.Service.GetName}}-{{.Method.GetName}}.method.json"
+
+  - name         : "inspect-file"
+    template_path: "{{.TMPL_PATH}}/inspect-file.tmpl"
+    enable       :
+      loop: [ "file" ]
+    out          : "{{.OUT_PATH}}/{{.File.GetName}}.inspect.txt"
+
+  - name: "hello-go-example"
+    enable:
+      loop: ["file"]
+    template_path: "{{.TMPL_PATH}}/go.tmpl"
+    plugins: ["golang"]
+    data:

@@ -1,0 +1,6 @@
+{
+  "name": "World",
+  "input_type": ".hello.HelloWorldReq",
+  "output_type": ".hello.HelloWorldResp",
+  "options": {}
+}

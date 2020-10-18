@@ -1,0 +1,17 @@
+{
+  "name": "Hello",
+  "method": [
+    {
+      "name": "World",
+      "input_type": ".hello.HelloWorldReq",
+      "output_type": ".hello.HelloWorldResp",
+      "options": {}
+    },
+    {
+      "name": "China",
+      "input_type": ".hello.HelloChinaReq",
+      "output_type": ".hello.HelloChinaResp",
+      "options": {}
+    }
+  ]
+}
