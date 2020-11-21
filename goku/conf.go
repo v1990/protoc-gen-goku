@@ -21,7 +21,7 @@ const (
 
 type Config struct {
 	// 全局变量 - 支持模版解析
-	Data []Data
+	Data Data
 	// 启用插件列表
 	Plugins []string
 	// 任务列表
@@ -33,6 +33,11 @@ type Job struct {
 	Name string
 	// 启用：所有条件符合则启用
 	Enable Enable
+	// 根据所处阶段
+	Loop LoopCondition
+	// 用户自定义的判断条件：返回 "true"/"false"
+	//  - 支持模版解析
+	If IfCondition
 	// 模版内容
 	Template string
 	// 模板路径 - 支持模板解析
@@ -44,7 +49,7 @@ type Job struct {
 	//
 	Plugins []string
 	// 任务级别的变量 - 支持模版解析
-	Data []Data
+	Data Data
 }
 
 type Enable struct {
@@ -82,6 +87,8 @@ func (j Job) GetConditions() []Condition {
 	return []Condition{
 		j.Enable.Loop,
 		j.Enable.If,
+		j.Loop,
+		j.If,
 	}
 }
 
@@ -95,14 +102,14 @@ func (j Job) IsEnable(ctx *Context) bool {
 }
 
 //type IConfig interface {
-//	GetData() []Data
+//	GetVar() []Data
 //	GetPlugin() []string
 //}
 //
-//func (t Config) GetData() []Data     { return t.Data }
+//func (t Config) GetVar() []Data     { return t.Data }
 //func (t Config) GetPlugin() []string { return t.Plugins }
 //
-//func (t Job) GetData() []Data     { return t.Data }
+//func (t Job) GetVar() []Data     { return t.Data }
 //func (t Job) GetPlugin() []string { return t.Plugins }
 
 //

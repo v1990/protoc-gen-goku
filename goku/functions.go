@@ -8,7 +8,12 @@ import (
 
 func (c *Context) baseFuncMap() FuncMap {
 	return FuncMap{
+		"Context": func() *Context {
+			return c
+		},
 		"showFunc": c.ShowFunc,
+
+		"getObject": c.GetObject,
 	}
 }
 

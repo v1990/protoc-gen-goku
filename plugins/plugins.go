@@ -1,3 +1,4 @@
+// goku.Generator plugins
 package plugins
 
 import (

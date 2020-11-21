@@ -1,0 +1,71 @@
+{{/* Loop: service */}}
+{{- $Service:=.Service}}
+
+{{- $pbFilePkg:=GoPackage $Service}}
+{{- $serverPkg:=GoPackage "server"}}
+{{- $contextPkg:=GoPackage "context"}}
+
+
+{{- $RegisterHandlerFunc:= printf "Register%s" .HandlerName}}
+{{- $newHandlerFunc:= printf "new%s" .HandlerName}}
+{{- $handlerName:=.handlerName}}
+{{- $proxyHandlerName:=.proxyHandlerName}}
+
+
+{{- .CopyRight}}
+
+package {{.handlerPackageName}}
+
+import (
+    {{$serverPkg.Import}}
+    {{$pbFilePkg.Import}}
+    {{$contextPkg.Import}}
+    {{GoImportDependency .File}}
+    {{/* TODO 自动清除 unused import */}}
+    // client "github.com/micro/go-micro/v2/client"
+
+)
+
+{{/* Handler interface */}}
+{{$Service|GoComments}}
+type {{.HandlerName}} interface{
+{{range $Method := $Service.Method }}
+    {{- $Input:=$Method.InputType|GoType}}
+    {{- $OutPut:=$Method.OutputType|GoType}}
+    {{$Method|GoComments}}
+    {{$Method.Name}}(ctx {{$contextPkg}}.Context,in {{$Input}},out {{$OutPut}}) error
+{{end}}
+}
+
+
+
+func {{$RegisterHandlerFunc}}(s {{$serverPkg}}.Server,opts ...{{$serverPkg}}.HandlerOption) error {
+    return {{$pbFilePkg}}.{{$RegisterHandlerFunc}}(s,{{$newHandlerFunc}}(),opts...)
+}
+
+func {{$newHandlerFunc}}()*{{$handlerName}}{
+    return new({{$handlerName}})
+}
+
+type {{$proxyHandlerName}} struct{
+ H *{{$handlerName}}
+}
+
+{{range $Method := $Service.Method}}
+{{- $MethodName:=$Method.Name}}
+{{- $Input:=$Method.InputType|GoType}}
+{{- $OutPut:=$Method.OutputType|GoType}}
+func (t *{{$proxyHandlerName}}){{$MethodName}}(ctx {{$contextPkg}}.Context,in {{$Input}},out {{$OutPut}}) error {
+    return t.H.{{$MethodName}}(ctx,in,out)
+}
+{{end}}
+
+
+
+
+
+
+
+/*
+{{showJSON . 2}}
+*/

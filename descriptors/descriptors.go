@@ -9,39 +9,19 @@
 所以，现在可以安全又愉快地使用 {{.Message.Field}}
 
 
-此外，还提供了一些公共的扩展： DescriptorCommon
-以及嵌套结构的扩展： Nestable
-
-并且以 common 结构实现了这些扩展，
-在生成的 Descriptor 中都包含了 common 对象
-
-特别说明：
-
-```go
-type DescriptorProto struct{
-	common // 继承了common的所有方法
-}
-func (t *DescriptorProto)Index() int {
-	if t.Empty(){
-		return -1
-	}
-	// common 提供的方法
-	// 如果有必要，可以实现 DescriptorProto.getIndex() 重载
-	// 为什么不能直接使用 t.common.Index() 或者 t.common.getIndex() ?
-	// 一是不方便重载
-	// 二是如果(t == nil),会导致空指针异常
-	return t.getIndex()
-}
-
-```
-
+此外，还扩展了一些功能，参考：
+	type DescriptorCommon interface{} 全体都有的扩展方法
+	type Nestable interface{}  可嵌套的对象： message/enum
+	type ProtoType interface{} proto类型信息：  message/enum
 */
 package descriptors
 
 import (
 	"fmt"
 	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
+	"github.com/v1990/protoc-gen-goku/helper"
 	"log"
+	"strings"
 )
 
 //////////////////////////////////////////////////////////////////////
@@ -69,6 +49,7 @@ type DescriptorCommon interface {
 	Parent() DescriptorCommon
 
 	// 索引值
+	//  如 Field 在其 Message 的序号
 	//  默认为 -1
 	Index() int
 
@@ -88,6 +69,7 @@ type NamedDescriptor interface {
 
 // 可嵌套在message中的结构
 //  See DescriptorProto / EnumDescriptorProto
+//  See NestableDescriptors
 type Nestable interface {
 	NamedDescriptor
 
@@ -95,6 +77,16 @@ type Nestable interface {
 	IsNested() bool
 	// 所属的message
 	ParentMessage() *DescriptorProto
+}
+
+// proto的基本类型信息. 目前有以下struct实现了此interface
+// - message: DescriptorProto
+// - enum: EnumDescriptorProto
+// See ProtoTypeDescriptors
+type ProtoType interface {
+	NamedDescriptor
+	// proto type 信息
+	ProtoType() *PbTypeInfo
 }
 
 type common struct {
@@ -339,4 +331,42 @@ func (t *FieldDescriptorProto) IsOptional() bool {
 
 func (t *FieldDescriptorProto) IsRepeated() bool {
 	return t.GetLabel() == FieldDescriptorProto_LABEL_REPEATED
+}
+
+//////////////////////////////////////////////////////////////////////
+
+type PbTypeInfo struct {
+	d     NamedDescriptor
+	names []string
+}
+
+func (t *PbTypeInfo) TypeNames() []string {
+	return t.names
+}
+
+// FullTypeName 完整的类型名称,如：.g
+func (t *PbTypeInfo) FullTypeName() string {
+	dottedPkg := "." + t.d.File().GetPackage()
+	if dottedPkg != "." {
+		dottedPkg += "."
+	}
+	return dottedPkg + strings.Join(t.names, ".")
+}
+
+func (t PbTypeInfo) Package() string {
+	return t.d.File().GetPackage()
+}
+
+func nestedTypeNames(d Nestable) []string {
+	var names []string
+	names = append(names, d.GetName())
+	for parent := d.ParentMessage(); parent != nil; parent = parent.ParentMessage() {
+		name := parent.GetName()
+		if len(name) == 0 {
+			break
+		}
+		names = append(names, name)
+	}
+	names = helper.ReverseStrings(names)
+	return names
 }

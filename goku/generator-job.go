@@ -2,11 +2,9 @@ package goku
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/v1990/protoc-gen-goku/descriptors"
-	"io/ioutil"
-	"os"
 	"path/filepath"
+	"strings"
 	"text/template"
 )
 
@@ -55,7 +53,7 @@ func (g *Generator) executeJobs(ctx *Context) {
 
 	for _, job := range jobs {
 		//g.Debug(strings.Repeat("*", 40))
-		//g.Debug("==== job: %s  [Start]", job.Base)
+		//g.Debug("==== job: %s  [Start]", job.Name)
 		//g.Debug(" %+v", job)
 		//g.Debug("")
 
@@ -63,13 +61,18 @@ func (g *Generator) executeJobs(ctx *Context) {
 		g.executeJob(job, ctx.withJob(job))
 
 		//g.Debug("")
-		//g.Debug("==== job: %s  [Done]", job.Base)
+		//g.Debug("==== job: %s  [Done]", job.Name)
 		//g.Debug(strings.Repeat("=", 40))
 	}
 }
 
 func (g *Generator) executeJob(job Job, ctx *Context) {
+
 	g.populateCtx(ctx)
+	outFileName := ctx.MustEval(job.Out)
+
+	g.Debug("execute job : %-18s %-20s %-30s ==> %s",
+		"["+ctx.Loop()+"]", ctx.Object().GetName(), job.Name, outFileName)
 
 	// 解析模板
 	var tpl *template.Template
@@ -79,6 +82,9 @@ func (g *Generator) executeJob(job Job, ctx *Context) {
 	} else {
 		// 先动态解析 TemplatePath
 		tplFile := ctx.MustEval(job.TemplatePath)
+		if !filepath.IsAbs(tplFile) && !strings.HasPrefix(tplFile, g.params["templatePath"]) {
+			tplFile = filepath.Join(g.params["templatePath"], tplFile)
+		}
 		tpl, err = template.New(filepath.Base(tplFile)).Funcs(ctx.tplFuncMap()).ParseFiles(tplFile)
 	}
 	g.FatalOnErr(err, "parse template: job: %s", job.Name)
@@ -97,26 +103,9 @@ func (g *Generator) executeJob(job Job, ctx *Context) {
 	content := ctx.Content()
 
 	// 输出
-	if len(job.Out) == 0 || job.Out == "stderr" {
-		fmt.Fprintln(os.Stderr, string(content))
-	} else {
-		//  输出到 g.response.File
-		outFileName := ctx.MustEval(job.Out)
-		if filepath.IsAbs(outFileName) {
-			// 绝对路径: 直接写文件
-			err = os.MkdirAll(filepath.Dir(outFileName), 0755)
-			g.FatalOnErr(err, "make dir for %s", outFileName)
-			err = ioutil.WriteFile(outFileName, content, 0644)
-			g.FatalOnErr(err, "write file fail. job:%s file:%s", job.Name, outFileName)
-		} else {
-			// 相对路径：输出到 g.response.File
-			g.addOutFile(outFileName, string(content))
-		}
-
-		g.Debug("execute job done: %-30s %-18s %-30s ==> %s",
-			job.Name, "["+ctx.Loop()+"]", ctx.Object().GetName(), outFileName)
-
-	}
+	err = g.WriteOutFile(outFileName, content)
+	g.FatalOnErr(err, "write out file failed. job(%s) job.out(%s)(parsed:%s)",
+		job.Name, job.Out, outFileName)
 
 }
 

@@ -61,3 +61,15 @@ func ToInt(v interface{}, def int) int {
 	}
 	return vv
 }
+
+func ParseBool(v interface{}) (bool, error) {
+	switch b := v.(type) {
+	case bool:
+		return b, nil
+	case *bool:
+		return *b, nil
+	case string:
+		return strconv.ParseBool(b)
+	}
+	return false, fmt.Errorf("parseBool: %v", v)
+}

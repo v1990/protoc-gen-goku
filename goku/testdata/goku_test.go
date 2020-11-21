@@ -30,6 +30,22 @@ func TestRun(t *testing.T) {
 	goku.Run(stdin, os.Stdout, os.Stderr)
 }
 
+func TestRun2(t *testing.T) {
+	req := mockRequestFromProtoJSONFile("request.json")
+	parameter := strings.Join([]string{
+		"debug=1",
+		"conf=../../examples/blog/config.yaml",
+		"workPath=../../examples/blog",
+		"templatePath=../../examples/blog/templates",
+		"outPath=../../examples/blog/out",
+		//"outPkgName=descriptors",
+	}, ",")
+	req.Parameter = &parameter
+
+	stdin := mockStdIn(req)
+	goku.Run(stdin, os.Stdout, os.Stderr)
+}
+
 func mockStdIn(req *pluginpb.CodeGeneratorRequest) io.Reader {
 	data, err := proto.Marshal(req)
 	if err != nil {

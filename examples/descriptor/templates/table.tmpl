@@ -1,0 +1,15 @@
+{{$table := dict "ProtoTypeDescriptors" .ProtoTypeDescriptors "NestableDescriptors" .NestableDescriptors }}
+
+
+{{- .CopyRight}}
+
+package {{.outPkg}}
+
+
+{{range $name,$types:= $table}}
+ {{- $interface :=$name|replace "Descriptors" ""}}
+// implemented {{$interface}} types
+var {{$name}} = []{{$interface}} {
+ {{range $types}} new({{.}}),{{"\n"}} {{end}}
+}
+{{end}}

@@ -47,7 +47,6 @@ type DescriptorObject interface {
 
 type Context struct {
 	*Generator
-	globalData map[interface{}]interface{}
 
 	data    Data
 	funcMap FuncMap
@@ -68,10 +67,9 @@ type Context struct {
 
 func newContext(g *Generator) *Context {
 	return &Context{
-		Generator:  g,
-		globalData: make(map[interface{}]interface{}),
-		data:       make(Data),
-		funcMap:    make(FuncMap),
+		Generator: g,
+		data:      make(Data),
+		funcMap:   make(FuncMap),
 	}
 }
 
@@ -84,6 +82,33 @@ func (c *Context) copy() *Context {
 	nc.funcMap = c.funcMap.Copy()
 
 	return nc
+}
+
+// 填充数据
+func (c *Context) populate() {
+	// 函数
+	c.MergeFuncMap(globalFuncMap)
+	c.MergeFuncMap(c.baseFuncMap())
+	// 静态变量
+	c.MergeData(globalData)
+	c.MergeData(Data{
+		"Params":        c.params,
+		"Loop":          c.Loop(),
+		"Ctx":           c,
+		"File":          c.File(),
+		"Message":       c.Message(),
+		"Enum":          c.Enum(),
+		"Service":       c.Service(),
+		"Method":        c.Method(),
+		"Object":        c.Object(),
+		"ParentMessage": c.ParentMessage(),
+	})
+	// 启用插件
+	c.callPlugins(func(plugin Plugin) {
+		plugin.BeforeExecute(c)
+	})
+	// 解析配置数据
+	c.parseConfData()
 }
 
 func (c *Context) WithLoop(loop Loop, desc DescriptorObject) *Context {
@@ -134,7 +159,6 @@ func (c *Context) MergeFuncMap(funcMap FuncMap) {
 func (c *Context) Data() Data {
 	return c.data
 }
-
 func (c *Context) Value(key interface{}) interface{} {
 	switch k := key.(type) {
 	case string:
@@ -143,13 +167,7 @@ func (c *Context) Value(key interface{}) interface{} {
 		}
 	}
 
-	return c.globalData[key]
-}
-func (c *Context) SetGlobal(kvs ...interface{}) {
-	for len(kvs) >= 2 {
-		c.globalData[kvs[0]] = kvs[1]
-		kvs = kvs[2:]
-	}
+	return c.Generator.Value(key)
 }
 
 func (c *Context) FuncMap() FuncMap {
@@ -207,12 +225,16 @@ func (c *Context) GetFileName() string {
 
 func (c *Context) MustEval(text string, args ...interface{}) string {
 	body, err := c.Eval(text, args...)
-	c.FatalOnErr(err, "eval: %s", err)
+	c.FatalOnErr(err, "eval text : %s", text)
 	return body
 }
 
 // 执行一段模板（脚本）
 func (c *Context) Eval(text string, args ...interface{}) (string, error) {
+	if strings.Index(text, "{{") < 0 {
+		return text, nil
+	}
+
 	data := c.Data()
 
 	if len(args) > 0 {
@@ -271,22 +293,25 @@ func (c *Context) callPlugins(f func(plugin Plugin)) {
 
 }
 func (c *Context) parseConfData() {
-	parseConfData(c, c.conf.Data)
+	parseData(c, c.conf.Data)
 	if c.job != nil {
-		parseConfData(c, c.job.Data)
+		parseData(c, c.job.Data)
 	}
 }
 
-func parseConfData(ctx *Context, list []Data) {
-	for _, data := range list {
-		parseData(ctx, data)
-	}
-}
+//func parseConfData(ctx *Context, list []Data) {
+//	for _, data := range list {
+//		parseData(ctx, data)
+//	}
+//}
 func parseData(ctx *Context, data Data) {
+
 	for k, vvv := range data {
 		switch v := vvv.(type) {
 		case string:
-			ctx.data[k] = ctx.MustEval(v)
+			res, err := ctx.Eval(v)
+			ctx.FatalOnErr(err, "parse data failed. %s=%s", k, v)
+			ctx.data[k] = res
 		default:
 			ctx.data[k] = v
 		}

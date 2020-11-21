@@ -31,6 +31,8 @@ type DescriptorProto struct {
 	options *MessageOptions
 
 	reserved_range []*DescriptorProto_ReservedRange
+
+	pbTypeInfo *PbTypeInfo
 }
 
 func newDescriptorProto(desc *descriptorpb.DescriptorProto) *DescriptorProto {
@@ -377,4 +379,15 @@ func (t *DescriptorProto) ParentMessage() *DescriptorProto {
 		return nil
 	}
 	return t.parentMessage()
+}
+
+// implemented ProtoType.ProtoType()
+func (t *DescriptorProto) ProtoType() *PbTypeInfo {
+	if t.Empty() {
+		return nil
+	}
+	if t.pbTypeInfo == nil {
+		t.pbTypeInfo = &PbTypeInfo{d: t, names: nestedTypeNames(t)}
+	}
+	return t.pbTypeInfo
 }

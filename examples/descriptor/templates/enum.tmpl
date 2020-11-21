@@ -1,0 +1,26 @@
+{{- $Enum:=.Enum}}
+
+
+{{- .CopyRight}}
+
+package {{.outPkg}}
+
+{{- $pbPkg := GoPackage .pbPkg }}
+import (
+    {{$pbPkg.Import}}
+)
+
+{{with $Enum.Comments.LeadingDetachedComments}} {{ .|contact|join "\n"|withLineSlash }} {{end}}
+
+// {{.TypeName}}
+//  See {{$pbPkg}}.{{.TypeName}}
+{{- with $Enum.Comments.LeadingComments}}{{"\n"}}{{ .|withLineSlash }} {{end}}
+type {{.TypeName}} = descriptorpb.{{.TypeName}}
+
+{{$ValuePrefix := or $Enum.ParentMessage.Name $Enum.Name}}
+const(
+{{- range $Enum.Value }}
+    {{- with .Comments.LeadingComments}} {{"\n"}}{{ .|withLineSlash }} {{end}}
+    {{$ValuePrefix}}_{{.Name}} = descriptorpb.{{$ValuePrefix}}_{{.Name}} {{with .Comments.TrailingComments}} {{.|withLineSlash}} {{end}}
+{{- end}}
+)

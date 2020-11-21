@@ -1,3 +1,4 @@
+// protoc-gen-goku Generator
 package goku
 
 import (
@@ -51,7 +52,8 @@ func Run(STDIN io.Reader, STDOUT io.Writer, STDERR io.Writer) {
 	// 日志需要重定向的stderr
 	log.SetOutput(STDERR)
 	log.SetPrefix("[protoc-gen-goku]: ")
-	log.SetFlags(log.Llongfile)
+	log.SetFlags(log.Lshortfile)
+	//log.SetFlags(log.Llongfile)
 
 	g := NewGenerator()
 	g.Run(STDIN, STDOUT, STDERR)

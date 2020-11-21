@@ -21,6 +21,8 @@ type EnumDescriptorProto struct {
 	options *EnumOptions
 
 	reserved_range []*EnumDescriptorProto_EnumReservedRange
+
+	pbTypeInfo *PbTypeInfo
 }
 
 func newEnumDescriptorProto(desc *descriptorpb.EnumDescriptorProto) *EnumDescriptorProto {
@@ -225,4 +227,15 @@ func (t *EnumDescriptorProto) ParentMessage() *DescriptorProto {
 		return nil
 	}
 	return t.parentMessage()
+}
+
+// implemented ProtoType.ProtoType()
+func (t *EnumDescriptorProto) ProtoType() *PbTypeInfo {
+	if t.Empty() {
+		return nil
+	}
+	if t.pbTypeInfo == nil {
+		t.pbTypeInfo = &PbTypeInfo{d: t, names: nestedTypeNames(t)}
+	}
+	return t.pbTypeInfo
 }

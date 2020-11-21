@@ -1,0 +1,21 @@
+{{- $Method:=.Method}}
+{{- $MethodName := $Method.Name}}
+{{- $Input:=$Method.InputType|GoType}}
+{{- $OutPut:=$Method.OutputType|GoType}}
+
+{{- .CopyRight|replace "DO NOT EDIT." ""}}
+
+package {{.handlerPackageName}}
+
+{{- $contextPkg := GoPackage "context"}}
+import (
+    {{$contextPkg.Import}}
+    {{$Input.Import}}
+    {{$OutPut.Import}}
+)
+
+// see  {{.HandlerName}}.{{$MethodName}}()
+func (t *{{.handlerName}}){{$MethodName}}(ctx {{$contextPkg}}.Context,in {{$Input}},out {{$OutPut}}) error {
+    // TODO
+    return nil
+}

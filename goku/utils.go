@@ -2,22 +2,26 @@ package goku
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"log"
+	"os"
 	"runtime/debug"
 	"strings"
 )
 
 func (g *Generator) Debug(format string, args ...interface{}) {
-	if _, ok := g.params["debug"]; !ok {
+	if !g.debug {
 		return
 	}
 	msg := fmt.Sprintf(format, args...)
-	log.Println(msg)
+
+	log.Output(2, msg+"\n")
+	//log.Println(msg)
 }
 
 func (g *Generator) Warn(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	log.Println("[WARN]", msg)
+	log.Output(2, "[WARN]"+msg+"\n")
 }
 
 // FatalOnErr 当 err!=nil 时报错并退出进程
@@ -30,7 +34,13 @@ func (g *Generator) FatalOnErr(err error, format string, args ...interface{}) {
 	msg += "  \n  Cause: " + err.Error()
 	msg += "\n" + string(debug.Stack())
 
-	log.Fatalln(msg)
+	log.Output(2, msg+"\n")
+	os.Exit(1)
+}
+func (g *Generator) Fatal(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	log.Output(2, "Fatal: "+msg+"\n")
+	os.Exit(1)
 }
 
 func (g *Generator) Recover(errPtr *error, msgs ...string) {
@@ -54,7 +64,12 @@ func (g *Generator) Recover(errPtr *error, msgs ...string) {
 		return
 	}
 
-	g.Debug("%s \n %s", err, string(debug.Stack()))
-	g.FatalOnErr(err, "PANIC:")
+	g.Debug("%#v \n %s", err, string(debug.Stack()))
+	g.FatalOnErr(err, "")
 
+}
+
+func (g *Generator) Throws(err error) {
+	err = errors.WithStack(err)
+	panic(err)
 }
