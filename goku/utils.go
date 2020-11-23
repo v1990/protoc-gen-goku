@@ -64,12 +64,15 @@ func (g *Generator) Recover(errPtr *error, msgs ...string) {
 		return
 	}
 
-	g.Debug("%#v \n %s", err, string(debug.Stack()))
+	g.Debug("%s \n %s", err, string(debug.Stack()))
 	g.FatalOnErr(err, "")
 
 }
 
-func (g *Generator) Throws(err error) {
+func (g *Generator) ThrowsOnErr(err error) {
+	if err == nil {
+		return
+	}
 	err = errors.WithStack(err)
 	panic(err)
 }

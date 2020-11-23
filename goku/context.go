@@ -48,6 +48,8 @@ type DescriptorObject interface {
 type Context struct {
 	*Generator
 
+	values map[interface{}]interface{}
+
 	data    Data
 	funcMap FuncMap
 	loop    Loop
@@ -70,6 +72,7 @@ func newContext(g *Generator) *Context {
 		Generator: g,
 		data:      make(Data),
 		funcMap:   make(FuncMap),
+		values:    make(map[interface{}]interface{}),
 	}
 }
 
@@ -80,6 +83,7 @@ func (c *Context) copy() *Context {
 	// 这两个map要深拷贝
 	nc.data = c.data.Copy()
 	nc.funcMap = c.funcMap.Copy()
+	//nc.values = make(map[interface{}]interface{})
 
 	return nc
 }
@@ -160,6 +164,13 @@ func (c *Context) Data() Data {
 	return c.data
 }
 func (c *Context) Value(key interface{}) interface{} {
+	if v := c.value(key); v != nil {
+		return v
+	}
+
+	return c.Generator.Value(key)
+}
+func (c *Context) value(key interface{}) interface{} {
 	switch k := key.(type) {
 	case string:
 		if v, ok := c.data[k]; ok {
@@ -167,7 +178,13 @@ func (c *Context) Value(key interface{}) interface{} {
 		}
 	}
 
-	return c.Generator.Value(key)
+	if v, ok := c.values[key]; ok {
+		return v
+	}
+	return nil
+}
+func (c *Context) PutValue(key interface{}, value interface{}) {
+	c.values[key] = value
 }
 
 func (c *Context) FuncMap() FuncMap {

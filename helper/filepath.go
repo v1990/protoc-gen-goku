@@ -9,14 +9,14 @@ import (
 func init() {
 	RegisterFuncMap(map[string]interface{}{
 		"baseFile":     filepath.Base,
-		"baseFileName": BaseFileName,
+		"baseFileName": BaseName,
 		"fileExists":   FileExists,
 	})
 }
 
-// BaseFileName returns the last path element of the name, with the last dotted suffix removed.
+// BaseName returns the last path element of the name, with the last dotted suffix removed.
 // a/b/c.d => c
-func BaseFileName(name string) string {
+func BaseName(name string) string {
 	// First, find the last element
 	if i := strings.LastIndex(name, "/"); i >= 0 {
 		name = name[i+1:]

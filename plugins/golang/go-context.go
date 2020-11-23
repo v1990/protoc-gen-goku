@@ -17,11 +17,13 @@ var (
 // 其他基于 golang 的插件可以继承此类进行扩展
 type Context struct {
 	*goku.Context
+	markedImports map[string]*GoPackage
 }
 
 func NewContext(ctx *goku.Context) *Context {
 	return &Context{
-		Context: ctx,
+		Context:       ctx,
+		markedImports: make(map[string]*GoPackage),
 	}
 }
 
@@ -33,6 +35,7 @@ func (c Context) FuncMap() goku.FuncMap {
 		"GoComments":         c.GoComments,
 		"GoImport":           c.GoImport,
 		"GoImportDependency": c.GoImportDependency,
+		"GoMarkImport":       c.GoMarkImport,
 	}
 }
 
@@ -50,7 +53,7 @@ func (c Context) GoType(value interface{}) *GoType {
 			return c.PbType2GoType(p)
 		}
 	}
-	c.Throws(fmt.Errorf("GoType: unknown type:%T name:%s", value, helper.GetName(value)))
+	c.ThrowsOnErr(fmt.Errorf("GoType: unknown type:%T name:%s", value, helper.GetName(value)))
 	return nil
 }
 
@@ -62,6 +65,10 @@ func (c Context) GoTypeBase(v interface{}) string {
 
 func (c Context) GoPackage(value interface{}) *GoPackage {
 	switch v := value.(type) {
+	case *GoPackage:
+		return v
+	case *GoType:
+		return v.Package
 	case string:
 		return GetGoPackageByName(v)
 	case *descriptors.FileDescriptorProto:
@@ -90,11 +97,8 @@ func RegisterPackage(pkg string, name string) *GoPackage {
 	}
 	// 提取 包别名
 	if len(name) == 0 {
-		if n := strings.LastIndex(pkg, "/"); n >= 0 {
-			name = pkg[n+1:]
-		} else {
-			name = pkg
-		}
+		// foo/bar => bar
+		name = helper.BaseName(pkg)
 	}
 
 	if IsGoKeyword(name) || IsGoPredeclaredIdentifier(name) {
@@ -130,7 +134,7 @@ func (c Context) FileGoPackage(file *descriptors.FileDescriptorProto) *GoPackage
 	var name, pkg string
 
 	if pkg = file.GetOptions().GetGoPackage(); len(pkg) > 0 {
-		// 如：option go_package = "github.com/golang/protobuf/protoc-gen-go/descriptor;descriptor";
+		// 如：option go_package = "github.com/golang/protobuf/protoc-Generator-go/descriptor;descriptor";
 		if n := strings.LastIndex(pkg, ";"); n > 0 {
 			name = pkg[n+1:]
 			pkg = pkg[:n]
@@ -252,8 +256,23 @@ func (c Context) GoImport(arg interface{}) string {
 	case descriptors.ProtoType:
 		return c.GoImport(c.PbType2GoType(v)) // goto case *GoType
 	}
-	c.Throws(fmt.Errorf("failed to parse import: %#v", arg))
+	c.ThrowsOnErr(fmt.Errorf("failed to parse import: %#v", arg))
 	return ""
+}
+
+// GoMarkImport 标记导入 【v】 所在的包，并在最终生成代码时加入到 import 中
+//    v: 能转化为 GoPackage 的对象，并且没有对【v】做任何修改，直接返回.
+// 所以 GoMarkImport 可以放在 pipeline 的任意合适的位置(前一个pipeline必须返回【v】)
+//    而 GoImport 必须放在 import 括号之中（直接生成了字符串）
+//    还有 GoImportDependency 也必须放在 import 括号之中,但是副作用很大，
+// 因为会导入proto文件中声明的所有 import，虽然最后生成代码时会自动 clean unused import.
+//
+//  Example:
+//		{{$Input:=$Method.InputType|GoType|GoMarkImport}}
+func (c Context) GoMarkImport(v interface{}) interface{} {
+	p := c.GoPackage(v)
+	c.markedImports[p.Name] = p
+	return v
 }
 
 // GoImportDependency returns golang style import lines for file Dependency
@@ -272,6 +291,6 @@ func (c Context) GoImportDependency(arg interface{}) string {
 		return c.GoImportDependency(v.File()) // goto case *descriptors.FileDescriptorProto
 	}
 
-	c.Throws(fmt.Errorf("GoImportDependency: unsupport arg: %T", arg))
+	c.ThrowsOnErr(fmt.Errorf("GoImportDependency: unsupport arg: %T", arg))
 	return ""
 }

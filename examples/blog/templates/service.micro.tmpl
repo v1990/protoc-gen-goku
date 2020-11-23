@@ -20,18 +20,17 @@ import (
     {{$serverPkg.Import}}
     {{$pbFilePkg.Import}}
     {{$contextPkg.Import}}
-    {{GoImportDependency .File}}
-    {{/* TODO 自动清除 unused import */}}
-    // client "github.com/micro/go-micro/v2/client"
 
+    {{/* 将 Proto File import 的包也导入进来，然后在最终生成的时候清除 */}}
+    // {{GoImportDependency .File}}
 )
 
 {{/* Handler interface */}}
 {{$Service|GoComments}}
 type {{.HandlerName}} interface{
 {{range $Method := $Service.Method }}
-    {{- $Input:=$Method.InputType|GoType}}
-    {{- $OutPut:=$Method.OutputType|GoType}}
+    {{- $Input:=$Method.InputType|GoType|GoMarkImport}}
+    {{- $OutPut:=$Method.OutputType|GoType|GoMarkImport}}
     {{$Method|GoComments}}
     {{$Method.Name}}(ctx {{$contextPkg}}.Context,in {{$Input}},out {{$OutPut}}) error
 {{end}}
