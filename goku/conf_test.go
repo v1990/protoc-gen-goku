@@ -1,5 +1,10 @@
 package goku
 
+import (
+	"github.com/v1990/protoc-gen-goku/descriptors"
+	"testing"
+)
+
 //
 //import (
 //	"fmt"
@@ -127,3 +132,35 @@ package goku
 //		})
 //	}
 //}
+
+func TestLoopCondition_OK(t *testing.T) {
+	ctx := newContext(nil)
+	ctx = ctx.WithLoop(LoopEnum, new(descriptors.EnumDescriptorProto))
+
+	tests := []struct {
+		name string
+		t    LoopCondition
+		ctx  *Context
+		want bool
+	}{
+		{
+			"a",
+			LoopCondition{LoopNestedEnum, LoopEnum},
+			ctx,
+			true,
+		},
+		{
+			"a",
+			LoopCondition{LoopMessage},
+			ctx,
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := tt.t.OK(tt.ctx); got != tt.want {
+				t.Errorf("OK() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

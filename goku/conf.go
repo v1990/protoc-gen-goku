@@ -20,19 +20,20 @@ const (
 )
 
 type Config struct {
-	// 全局变量 - 支持模版解析
+	// 声明全局变量
+	//  - 支持模版解析
+	// 因为 map 是无序的，所以不可相互引用
 	Data Data
-	// 启用插件列表
+	// 全局启用插件列表
 	Plugins []string
 	// 任务列表
+	// TODO 改为 map[string]Job,并且params增加jobs，excludeJobs来选择要执行的job
 	Jobs []Job
 }
 
 type Job struct {
 	// 任务名称
 	Name string
-	// 启用：所有条件符合则启用
-	Enable Enable
 	// 根据所处阶段
 	Loop LoopCondition
 	// 用户自定义的判断条件：返回 "true"/"false"
@@ -48,29 +49,22 @@ type Job struct {
 	// 启用插件列表
 	//
 	Plugins []string
-	// 任务级别的变量 - 支持模版解析
+	// 任务级别的变量
+	// - 与全局的 Config.Data
 	Data Data
-}
-
-type Enable struct {
-	// 根据所处阶段
-	Loop LoopCondition
-	// 用户自定义的判断条件：返回 "true"/"false"
-	//  - 支持模版解析
-	If IfCondition
 }
 
 type Condition interface {
 	OK(ctx *Context) bool
 }
-type LoopCondition []string
+type LoopCondition []Loop
 type IfCondition string
 
 func (t LoopCondition) OK(ctx *Context) bool {
 	if len(t) == 0 {
 		return true
 	}
-	return helper.InStrings(string(ctx.Loop()), t...)
+	return helper.In(ctx.Loop(), t)
 }
 
 func (t IfCondition) OK(ctx *Context) bool {
@@ -85,8 +79,6 @@ func (t IfCondition) OK(ctx *Context) bool {
 
 func (j Job) GetConditions() []Condition {
 	return []Condition{
-		j.Enable.Loop,
-		j.Enable.If,
 		j.Loop,
 		j.If,
 	}

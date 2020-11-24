@@ -259,7 +259,6 @@ func (p LocationPath) String() string {
 ////////////////////////////////////////////////////////////////////////
 
 // implement DescriptorCommon.Comments()
-func (t *common) Comments() *SourceCodeInfo_Location { return t.getComments() }
 func (t *common) getComments() *SourceCodeInfo_Location {
 	return t.desc.File().findLocationByPath(t.getLocationPath())
 }
@@ -309,13 +308,6 @@ func (t *MethodDescriptorProto) Service() *ServiceDescriptorProto {
 		return s
 	}
 	return nil
-}
-
-func (t *MethodDescriptorProto) InputMessage() *DescriptorProto {
-	return nil // TODO
-}
-func (t *MethodDescriptorProto) OutputMessage() *DescriptorProto {
-	return nil // TODO
 }
 
 //////////////////////////////////////////////////////////////////////

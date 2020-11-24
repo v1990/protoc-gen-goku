@@ -53,7 +53,7 @@ func (g *Generator) executeJobs(ctx *Context) {
 
 	for _, job := range jobs {
 		//g.Debug(strings.Repeat("*", 40))
-		//g.Debug("==== job: %s  [Start]", job.Name)
+		//g.Debug("==== job: %s  [Start]", job.name)
 		//g.Debug(" %+v", job)
 		//g.Debug("")
 
@@ -61,7 +61,7 @@ func (g *Generator) executeJobs(ctx *Context) {
 		g.executeJob(job, ctx.withJob(job))
 
 		//g.Debug("")
-		//g.Debug("==== job: %s  [Done]", job.Name)
+		//g.Debug("==== job: %s  [Done]", job.name)
 		//g.Debug(strings.Repeat("=", 40))
 	}
 }
@@ -71,7 +71,7 @@ func (g *Generator) executeJob(job Job, ctx *Context) {
 	g.populateCtx(ctx)
 	outFileName := ctx.MustEval(job.Out)
 
-	g.Debug("execute job : %-18s %-20s %-30s ==> %s",
+	g.Debug("execute job : %-18s  %-25s  %-30s ==> %s",
 		"["+ctx.Loop()+"]", ctx.Object().GetName(), job.Name, outFileName)
 
 	// 解析模板

@@ -2,7 +2,6 @@ package goku
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"log"
 	"os"
 	"runtime/debug"
@@ -73,6 +72,10 @@ func (g *Generator) ThrowsOnErr(err error) {
 	if err == nil {
 		return
 	}
-	err = errors.WithStack(err)
+
+	if g.debug {
+		err = fmt.Errorf("%s \n %+v", err, err)
+	}
 	panic(err)
+
 }

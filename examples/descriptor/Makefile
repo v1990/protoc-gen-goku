@@ -1,5 +1,5 @@
 WORK_PATH=$(shell pwd)
-DEBUG=0
+DEBUG=1
 CONF=$(WORK_PATH)/config.yaml
 ROOT=$(realpath ../../)
 

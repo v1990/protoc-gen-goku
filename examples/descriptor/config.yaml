@@ -21,24 +21,23 @@ data:
   # 以下：动态解析
   WORK_PATH: "{{.Params.workPath}}"
   #  - OUT_PATH: '{{.Params.outPath}}'
-  OUT_PATH: 'out'
+  OUT_PATH: '.'
   TMPL_PATH: '{{.WORK_PATH}}/templates'
   # 输出文件的包名
   outPkg: '{{.Params.outPkgName}}'
-  TypeName: '{{if (in .Loop "message" "nested_message" "enum" "nested_enum")}}  {{- .Object|GoTypeBase -}} {{end}}'
+#  TypeName: '{{with .Object}}  {{- .Object|GoTypeBase -}} {{end}}'
 
 jobs:
   ############## 任务参数示例 ###################
   - # message
     name: "generate-descriptor-message"
-    enable:
-      # 处理 top-level message 和嵌套的 message
-      loop: [ "message" ,"nested_message" ]
-      # 被排除的不处理
-      if: '{{notIn .Message.Name .excludeDescriptors }}'
+    # 处理 top-level message 和嵌套的 message
+    loop: [ "message" ,"nested_message" ]
+    # 被排除的不处理
+    if: '{{notIn .Message.Name .excludeDescriptors }}'
     plugins: [ ]
     data:
-#      TypeName: '{{.Message|GoTypeBase}}'
+      TypeName: '{{.Message|GoTypeBase}}'
     #    template: '/*  message: {{printf "%T" .Object}} {{showJSON .Object}}*/'
     templatePath: "{{.TMPL_PATH}}/message.tmpl"
     out: "{{.OUT_PATH}}/{{.TypeName}}.goku.pb.go"
@@ -46,18 +45,16 @@ jobs:
   ############################################
   - # enum
     name: "generate-descriptor-enum"
-    enable:
-      loop: [ "enum","nested_enum" ]
+    loop: [ "enum","nested_enum" ]
     data:
-#      TypeName: '{{.Enum|GoTypeBase}}'
+      TypeName: '{{.Enum|GoTypeBase}}'
     templatePath: "{{.TMPL_PATH}}/enum.tmpl"
     out: "{{.OUT_PATH}}/{{.TypeName}}.goku.pb.go"
   #
   #  ############################################
   - # type table
     name: "generate-type-table"
-    enable:
-      loop: ["file"]
+    loop: ["file"]
     templatePath: "{{.TMPL_PATH}}/table.tmpl"
     out: "{{.OUT_PATH}}/descriptors-table.goku.pb.go"
   - # 测试注释

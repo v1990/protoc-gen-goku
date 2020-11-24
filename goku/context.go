@@ -2,43 +2,12 @@ package goku
 
 import (
 	"bytes"
-	"fmt"
+	"github.com/pkg/errors"
 	"github.com/v1990/protoc-gen-goku/descriptors"
 	"github.com/v1990/protoc-gen-goku/helper"
 	"strings"
 	"text/template"
 )
-
-type Data map[string]interface{}
-
-func (data Data) Copy() Data {
-	out := make(Data)
-	for k, v := range data {
-		out[k] = v
-	}
-	return out
-}
-func (data Data) DoMerge(other Data) {
-	for k, v := range other {
-		data[k] = v
-	}
-}
-
-type FuncMap template.FuncMap
-
-func (m FuncMap) Copy() FuncMap {
-	out := make(FuncMap)
-	for k, v := range m {
-		out[k] = v
-	}
-	return out
-}
-
-func (m FuncMap) DoMerge(other FuncMap) {
-	for k, v := range other {
-		m[k] = v
-	}
-}
 
 type DescriptorObject interface {
 	descriptors.DescriptorCommon
@@ -59,12 +28,12 @@ type Context struct {
 
 	object DescriptorObject
 
-	file          *File
-	service       *Service
-	method        *Method
-	message       *Message
-	enumObj       *Enum
-	parentMessage *Message
+	file          *descriptors.FileDescriptorProto
+	service       *descriptors.ServiceDescriptorProto
+	method        *descriptors.MethodDescriptorProto
+	message       *descriptors.DescriptorProto
+	enumObj       *descriptors.EnumDescriptorProto
+	parentMessage *descriptors.DescriptorProto
 }
 
 func newContext(g *Generator) *Context {
@@ -199,32 +168,32 @@ func (c *Context) Object() DescriptorObject {
 }
 
 // File returns current FileDescriptorProto
-func (c *Context) File() *File {
+func (c *Context) File() *descriptors.FileDescriptorProto {
 	return c.file
 }
 
 // Service returns current ServiceDescriptorProto. ONLY [ LoopService LoopMethod ]
-func (c *Context) Service() *Service {
+func (c *Context) Service() *descriptors.ServiceDescriptorProto {
 	return c.service
 }
 
 // Method returns current MethodDescriptorProto. ONLY [ LoopMethod ]
-func (c *Context) Method() *Method {
+func (c *Context) Method() *descriptors.MethodDescriptorProto {
 	return c.method
 }
 
 // ParentMessage  ONLY [ LoopNestedMessage LoopNestedEnum ]
-func (c *Context) ParentMessage() *Message {
+func (c *Context) ParentMessage() *descriptors.DescriptorProto {
 	return c.Message().ParentMessage()
 }
 
 // Message ONLY [ LoopMessage ]
-func (c *Context) Message() *Message {
+func (c *Context) Message() *descriptors.DescriptorProto {
 	return c.message
 }
 
 // Enum ONLY [ LoopEnum ]
-func (c *Context) Enum() *Enum {
+func (c *Context) Enum() *descriptors.EnumDescriptorProto {
 	return c.enumObj
 }
 
@@ -269,13 +238,13 @@ func (c *Context) Eval(text string, args ...interface{}) (string, error) {
 
 	tpl, err := template.New("text").Funcs(c.tplFuncMap()).Parse(text)
 	if err != nil {
-		return "", fmt.Errorf("eval.parse.err: %w  [text] %s", err, text)
+		return "", errors.Wrapf(err, "parse text [%s]", text)
 	}
 
 	buf := bytes.NewBuffer(nil)
 	err = tpl.Execute(buf, data)
 	if err != nil {
-		return "", fmt.Errorf("eval:execute err: %w  [text] %s", err, text)
+		return "", errors.Wrapf(err, "execute text [%s]", text)
 	}
 	return buf.String(), nil
 }

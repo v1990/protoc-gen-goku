@@ -1,7 +1,7 @@
 package golang
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"github.com/v1990/protoc-gen-goku/descriptors"
 	"github.com/v1990/protoc-gen-goku/goku"
 	"github.com/v1990/protoc-gen-goku/helper"
@@ -53,14 +53,14 @@ func (c Context) GoType(value interface{}) *GoType {
 			return c.PbType2GoType(p)
 		}
 	}
-	c.ThrowsOnErr(fmt.Errorf("GoType: unknown type:%T name:%s", value, helper.GetName(value)))
+	c.ThrowsOnErr(errors.Errorf("GoType: unknown type:%T name:%s", value, helper.GetName(value)))
 	return nil
 }
 
 // 返回基本类型名
 // []*a.T => T
 func (c Context) GoTypeBase(v interface{}) string {
-	return c.GoType(v).Name
+	return c.GoType(v).Name()
 }
 
 func (c Context) GoPackage(value interface{}) *GoPackage {
@@ -68,7 +68,7 @@ func (c Context) GoPackage(value interface{}) *GoPackage {
 	case *GoPackage:
 		return v
 	case *GoType:
-		return v.Package
+		return v.pkg
 	case string:
 		return GetGoPackageByName(v)
 	case *descriptors.FileDescriptorProto:
@@ -165,7 +165,7 @@ func (c Context) PbField2GoType(field *descriptors.FieldDescriptorProto) *GoType
 
 	t := &GoType{}
 	if s, ok := baseTypes[field.GetType()]; ok {
-		t.Name = s
+		t.name = s
 		t.isBase = true
 	} else {
 		// Message / Enum...
@@ -200,10 +200,10 @@ func (c Context) PbType2GoType(pbType descriptors.ProtoType) *GoType {
 	}
 
 	return &GoType{
-		Name:     base,
+		name:     base,
 		repeated: false,
 		pointer:  pointer,
-		Package:  pkg,
+		pkg:      pkg,
 	}
 }
 
@@ -248,7 +248,7 @@ func (c Context) GoImport(arg interface{}) string {
 	case *GoPackage:
 		return v.Import()
 	case *GoType:
-		return c.GoImport(v.Package) // goto case *GoPackage
+		return c.GoImport(v.pkg) // goto case *GoPackage
 	case *descriptors.FieldDescriptorProto:
 		return c.GoImport(c.PbField2GoType(v)) // goto case *GoType
 	case *descriptors.FileDescriptorProto:
@@ -256,7 +256,7 @@ func (c Context) GoImport(arg interface{}) string {
 	case descriptors.ProtoType:
 		return c.GoImport(c.PbType2GoType(v)) // goto case *GoType
 	}
-	c.ThrowsOnErr(fmt.Errorf("failed to parse import: %#v", arg))
+	c.ThrowsOnErr(errors.Errorf("failed to parse import: %#v", arg))
 	return ""
 }
 
@@ -291,6 +291,6 @@ func (c Context) GoImportDependency(arg interface{}) string {
 		return c.GoImportDependency(v.File()) // goto case *descriptors.FileDescriptorProto
 	}
 
-	c.ThrowsOnErr(fmt.Errorf("GoImportDependency: unsupport arg: %T", arg))
+	c.ThrowsOnErr(errors.Errorf("GoImportDependency: unsupport arg: %T", arg))
 	return ""
 }

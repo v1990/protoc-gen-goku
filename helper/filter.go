@@ -16,6 +16,10 @@ func FilterEmpty(v ...interface{}) []interface{} {
 }
 
 func Empty(given interface{}) bool {
+	if given == nil {
+		return true
+	}
+
 	if v, ok := given.(interface{ Empty() bool }); ok {
 		return v.Empty()
 	}

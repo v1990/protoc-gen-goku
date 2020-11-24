@@ -1,8 +1,9 @@
 GoKu(悟空) - 看我七十二变
 ============================
 - 基于`go/template`的`protobuf`代码生成工具
-- 使用本工具前需先了解[descriptor.proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto)
+- 使用本工具前请先了解[descriptor.proto](https://github.com/protocolbuffers/protobuf/blob/master/src/google/protobuf/descriptor.proto)
 
+## [Documents](https://pkg.go.dev/github.com/v1990/protoc-gen-goku)
 
 ## 项目介绍
 

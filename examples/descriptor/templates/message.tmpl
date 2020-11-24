@@ -15,9 +15,9 @@
 
 package {{.outPkg}}
 
-{{- $pbPkg := GoPackage "descriptorpb" }}
-{{- $bytesPkg := GoPackage "bytes" }}
-{{- $jsonPbPkg := GoPackage "github.com/gogo/protobuf/jsonpb" }}
+{{- $pbPkg := GoPackage "descriptorpb"|GoMarkImport }}
+{{- $bytesPkg := GoPackage "bytes"|GoMarkImport }}
+{{- $jsonPbPkg := GoPackage "github.com/gogo/protobuf/jsonpb"|GoMarkImport }}
 import (
     {{$pbPkg.Import}}
     {{$bytesPkg.Import}}
@@ -178,6 +178,13 @@ func (t *{{$StructName}})LocationPath() LocationPath {
     }
 
     return t.getLocationPath()
+}
+
+func (t *{{$StructName}}) Comments() *SourceCodeInfo_Location {
+    if t.Empty() {
+        return nil
+    }
+    return t.getComments()
 }
 
 

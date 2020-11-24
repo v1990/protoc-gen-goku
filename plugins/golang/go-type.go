@@ -21,11 +21,25 @@ func (p GoPackage) Import() string {
 }
 
 type GoType struct {
-	Name     string     // 基本类型名，
+	name     string     // 基本类型名，
 	repeated bool       // 是否数组
 	pointer  bool       // 是否指针
-	isBase   bool       // 是否基础类型(如int)，如果是，Package = nil
-	Package  *GoPackage // 包信息
+	isBase   bool       // 是否基础类型(如int)，如果是，pkg = nil
+	pkg      *GoPackage // 包信息
+}
+
+func (t *GoType) Package() *GoPackage {
+	if t == nil {
+		return nil
+	}
+	return t.pkg
+}
+
+func (t *GoType) Name() string {
+	if t == nil {
+		return ""
+	}
+	return t.name
 }
 
 func (t *GoType) String() string {
@@ -58,18 +72,18 @@ func (t *GoType) defaultFormat() string {
 		s = append(s, "*")
 	}
 
-	if t.Package != nil {
-		s = append(s, t.Package.Name, ".")
+	if t.pkg != nil {
+		s = append(s, t.pkg.Name, ".")
 	}
 
-	s = append(s, t.Name)
+	s = append(s, t.name)
 
 	return strings.Join(s, "")
 
 }
 
 func (t *GoType) Import() string {
-	return t.Package.Import()
+	return t.pkg.Import()
 }
 
 func (t *GoType) SetField(field string, value interface{}) *GoType {
@@ -87,17 +101,17 @@ func (t *GoType) SetPackage(value interface{}) *GoType {
 	tt := t.Copy()
 
 	if helper.Empty(value) {
-		tt.Package = nil
+		tt.pkg = nil
 		return tt
 	}
 
 	switch pkg := value.(type) {
 	case string:
-		tt.Package = GetGoPackageByName(pkg)
+		tt.pkg = GetGoPackageByName(pkg)
 	case *GoPackage:
-		tt.Package = pkg
+		tt.pkg = pkg
 	}
-	if tt.Package == nil {
+	if tt.pkg == nil {
 		Throws(errors.Errorf("can not set GoType field(%s)=value(%v)", "package", value))
 		return tt
 	}
