@@ -43,16 +43,15 @@ func (g *Generator) generateFile(file *descriptors.FileDescriptorProto) {
 			g.executeJobs(mCtx)
 		}
 	}
-
 }
 
 func (g *Generator) executeJobs(ctx *Context) {
 	g.populateCtx(ctx)
 	jobs := g.getJobs(ctx)
-	//g.Debug("executeJobs: %s -> [%s] %s jobs: %d", ctx.GetFileName(), ctx.Loop(), ctx.object.GetName(), len(jobs))
+	// g.Debug("executeJobs: %s -> [%s] %s jobs: %d", ctx.GetFileName(), ctx.Loop(), ctx.object.GetName(), len(jobs))
 
 	for _, job := range jobs {
-		//g.Debug(strings.Repeat("*", 40))
+		// g.Debug(strings.Repeat("*", 40))
 		//g.Debug("==== job: %s  [Start]", job.name)
 		//g.Debug(" %+v", job)
 		//g.Debug("")
@@ -67,7 +66,6 @@ func (g *Generator) executeJobs(ctx *Context) {
 }
 
 func (g *Generator) executeJob(job Job, ctx *Context) {
-
 	g.populateCtx(ctx)
 	outFileName := ctx.MustEval(job.Out)
 

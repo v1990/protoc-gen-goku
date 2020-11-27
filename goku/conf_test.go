@@ -139,7 +139,7 @@ func TestLoopCondition_OK(t *testing.T) {
 
 	tests := []struct {
 		name string
-		t    LoopCondition
+		t    Condition
 		ctx  *Context
 		want bool
 	}{

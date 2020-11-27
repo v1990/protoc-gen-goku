@@ -102,7 +102,7 @@ func RegisterPackage(pkg string, name string) *GoPackage {
 	}
 
 	if IsGoKeyword(name) || IsGoPredeclaredIdentifier(name) {
-		name = name + "_"
+		name += "_"
 	}
 
 	// 确保包别名唯一
@@ -117,7 +117,6 @@ func RegisterPackage(pkg string, name string) *GoPackage {
 
 	globalPackages[p.Name] = p
 	return p
-
 }
 
 func GetGoPackageByPath(importPath string) *GoPackage {
@@ -162,7 +161,6 @@ func (c Context) FileGoPackage(file *descriptors.FileDescriptorProto) *GoPackage
 
 // Field to GoType
 func (c Context) PbField2GoType(field *descriptors.FieldDescriptorProto) *GoType {
-
 	t := &GoType{}
 	if s, ok := baseTypes[field.GetType()]; ok {
 		t.name = s
@@ -176,6 +174,7 @@ func (c Context) PbField2GoType(field *descriptors.FieldDescriptorProto) *GoType
 		switch field.GetType() {
 		case descriptors.FieldDescriptorProto_TYPE_MESSAGE:
 			t.pointer = true
+		default:
 		}
 	}
 
@@ -232,7 +231,6 @@ func (c Context) GoComments(arg interface{}) string {
 		return c.GoComments(v.Comments())
 	}
 	return c.GoComments(helper.ToString(arg))
-
 }
 
 func toGoComments(src string) string {
@@ -291,6 +289,6 @@ func (c Context) GoImportDependency(arg interface{}) string {
 		return c.GoImportDependency(v.File()) // goto case *descriptors.FileDescriptorProto
 	}
 
-	c.ThrowsOnErr(errors.Errorf("GoImportDependency: unsupport arg: %T", arg))
+	c.ThrowsOnErr(errors.Errorf("GoImportDependency: unsupported arg: %T", arg))
 	return ""
 }

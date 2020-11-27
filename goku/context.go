@@ -52,7 +52,7 @@ func (c *Context) copy() *Context {
 	// 这两个map要深拷贝
 	nc.data = c.data.Copy()
 	nc.funcMap = c.funcMap.Copy()
-	//nc.values = make(map[interface{}]interface{})
+	// nc.values = make(map[interface{}]interface{})
 
 	return nc
 }
@@ -145,6 +145,7 @@ func (c *Context) value(key interface{}) interface{} {
 		if v, ok := c.data[k]; ok {
 			return v
 		}
+	default:
 	}
 
 	if v, ok := c.values[key]; ok {
@@ -211,13 +212,13 @@ func (c *Context) GetFileName() string {
 
 func (c *Context) MustEval(text string, args ...interface{}) string {
 	body, err := c.Eval(text, args...)
-	c.FatalOnErr(err, "eval text : %s", text)
+	c.ThrowsOnErr(errors.Wrapf(err, "eval text: %s", text))
 	return body
 }
 
 // 执行一段模板（脚本）
 func (c *Context) Eval(text string, args ...interface{}) (string, error) {
-	if strings.Index(text, "{{") < 0 {
+	if !strings.Contains(text, "{{") {
 		return text, nil
 	}
 
@@ -276,7 +277,6 @@ func (c *Context) callPlugins(f func(plugin Plugin)) {
 			f(p)
 		}
 	}
-
 }
 func (c *Context) parseConfData() {
 	parseData(c, c.conf.Data)
@@ -285,13 +285,13 @@ func (c *Context) parseConfData() {
 	}
 }
 
-//func parseConfData(ctx *Context, list []Data) {
+// func parseConfData(ctx *Context, list []Data) {
 //	for _, data := range list {
 //		parseData(ctx, data)
 //	}
 //}
-func parseData(ctx *Context, data Data) {
 
+func parseData(ctx *Context, data Data) {
 	for k, vvv := range data {
 		switch v := vvv.(type) {
 		case string:

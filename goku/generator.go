@@ -218,6 +218,8 @@ func (g *Generator) Value(key interface{}) interface{} {
 		if v, ok := g.params[k]; ok {
 			return v
 		}
+	default:
+		return nil
 	}
 	return nil
 }
@@ -234,7 +236,7 @@ func (g *Generator) setDefaultParam(key string, def string) string {
 
 func (g *Generator) logRequest(r *pluginpb.CodeGeneratorRequest) {
 	jsonStr := helper.ShowJSON(r, 3)
-	//jsonStr, err := (&jsonpb.Marshaler{
+	// jsonStr, err := (&jsonpb.Marshaler{
 	//	Indent: " ",
 	//}).MarshalToString(r)
 	//if err != nil {
