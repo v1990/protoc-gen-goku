@@ -72,7 +72,7 @@ func (g *Generator) executeJob(job Job, ctx *Context) {
 	outFileName := ctx.MustEval(job.Out)
 
 	g.Debug("execute job : %-18s  %-25s  %-30s ==> %s",
-		"["+ctx.Loop()+"]", ctx.Object().GetName(), job.Name, outFileName)
+		"["+ctx.Loop()+"]", ObjectName(ctx.Object()), job.Name, outFileName)
 
 	// 解析模板
 	var tpl *template.Template

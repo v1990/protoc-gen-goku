@@ -14,6 +14,13 @@ type DescriptorObject interface {
 	GetName() string
 }
 
+func ObjectName(d DescriptorObject) string {
+	if d == nil {
+		return "nil"
+	}
+	return d.GetName()
+}
+
 type Context struct {
 	*Generator
 

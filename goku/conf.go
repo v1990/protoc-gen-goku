@@ -10,6 +10,8 @@ import (
 type Loop string
 
 const (
+	LoopOnce          Loop = "once"    // init之后执行一次
+	LoopPackage       Loop = "package" // TODO 实现它 每个package执行一次
 	LoopFile          Loop = "file"
 	LoopService       Loop = "service"
 	LoopMethod        Loop = "method"

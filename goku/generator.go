@@ -52,6 +52,8 @@ func (g *Generator) Run(IN io.Reader, OUT io.Writer, ERR io.Writer) {
 	data, err := ioutil.ReadAll(IN)
 	g.FatalOnErr(err, "reading input")
 
+	ioutil.WriteFile("request.pb",data,0644)
+
 	err = proto.Unmarshal(data, g.request)
 	g.FatalOnErr(err, "parsing input proto")
 
@@ -126,7 +128,7 @@ func (g *Generator) wrapAllFiles(files []*descriptorpb.FileDescriptorProto) {
 func (g *Generator) recordType(t descriptors.ProtoType) {
 	name := t.ProtoType().FullTypeName()
 	g.typesByName[name] = t
-	g.Debug("recordType: %-60s ==> [%T]%s", name, t, t.GetName())
+	//g.Debug("recordType: %-60s ==> [%T]%s", name, t, t.GetName())
 }
 
 func (g *Generator) GetObject(typeName string) descriptors.ProtoType {
@@ -152,6 +154,11 @@ func (g *Generator) MustGetDescriptorByName(typeName string) descriptors.ProtoTy
 	g.Fatal("can not found type: %s", typeName)
 	return nil
 }
+func (g *Generator) EachType(f func(name string, obj descriptors.ProtoType)) {
+	for name, obj := range g.typesByName {
+		f(name, obj)
+	}
+}
 
 func (g *Generator) initPlugins() {
 	for _, p := range plugins {
@@ -160,6 +167,9 @@ func (g *Generator) initPlugins() {
 }
 
 func (g *Generator) generateFiles(filenames []string) {
+	gCtx := g.ctx.WithLoop(LoopOnce, nil)
+	g.executeJobs(gCtx)
+
 	for _, filename := range filenames {
 		file := g.filesByName[filename]
 		g.generateFile(file)
