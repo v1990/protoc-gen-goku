@@ -36,11 +36,11 @@ type Context struct {
 	object DescriptorObject
 
 	file          *descriptors.FileDescriptorProto
-	service       *descriptors.ServiceDescriptorProto
-	method        *descriptors.MethodDescriptorProto
-	message       *descriptors.DescriptorProto
-	enumObj       *descriptors.EnumDescriptorProto
-	parentMessage *descriptors.DescriptorProto
+	service       descriptors.IServiceDescriptorProto
+	method        descriptors.IMethodDescriptorProto
+	message       descriptors.IDescriptorProto
+	enumObj       descriptors.IEnumDescriptorProto
+	parentMessage descriptors.IDescriptorProto
 }
 
 func newContext(g *Generator) *Context {
@@ -180,12 +180,18 @@ func (c *Context) File() *descriptors.FileDescriptorProto {
 }
 
 // Service returns current ServiceDescriptorProto. ONLY [ LoopService LoopMethod ]
-func (c *Context) Service() *descriptors.ServiceDescriptorProto {
+func (c *Context) Service() descriptors.IServiceDescriptorProto {
+	if c.service == nil {
+		c.service = (*descriptors.ServiceDescriptorProto)(nil)
+	}
 	return c.service
 }
 
 // Method returns current MethodDescriptorProto. ONLY [ LoopMethod ]
-func (c *Context) Method() *descriptors.MethodDescriptorProto {
+func (c *Context) Method() descriptors.IMethodDescriptorProto {
+	if c.method == nil {
+		c.method = (*descriptors.MethodDescriptorProto)(nil)
+	}
 	return c.method
 }
 
@@ -195,12 +201,15 @@ func (c *Context) ParentMessage() *descriptors.DescriptorProto {
 }
 
 // Message ONLY [ LoopMessage ]
-func (c *Context) Message() *descriptors.DescriptorProto {
+func (c *Context) Message() descriptors.IDescriptorProto {
+	if c.message == nil {
+		c.message = (*descriptors.DescriptorProto)(nil)
+	}
 	return c.message
 }
 
 // Enum ONLY [ LoopEnum ]
-func (c *Context) Enum() *descriptors.EnumDescriptorProto {
+func (c *Context) Enum() descriptors.IEnumDescriptorProto {
 	return c.enumObj
 }
 
@@ -297,16 +306,18 @@ func (c *Context) parseConfData() {
 //		parseData(ctx, data)
 //	}
 //}
-func parseData(ctx *Context, data Data) {
-
-	for k, vvv := range data {
-		switch v := vvv.(type) {
-		case string:
-			res, err := ctx.Eval(v)
-			ctx.FatalOnErr(err, "parse data failed. %s=%s", k, v)
-			ctx.data[k] = res
-		default:
-			ctx.data[k] = v
+func parseData(ctx *Context, dataList []Data) {
+	for _, data := range dataList {
+		for k, vvv := range data {
+			switch v := vvv.(type) {
+			case string:
+				res, err := ctx.Eval(v)
+				ctx.FatalOnErr(err, "parse data failed. %s=%s", k, v)
+				ctx.data[k] = res
+			default:
+				// TODO 支持递归地解析
+				ctx.data[k] = v
+			}
 		}
 	}
 }

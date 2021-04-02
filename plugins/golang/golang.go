@@ -3,6 +3,8 @@ package golang
 
 import (
 	"github.com/v1990/protoc-gen-goku/goku"
+	"github.com/v1990/protoc-gen-goku/helper"
+	"reflect"
 )
 
 type goPlugin struct {
@@ -22,8 +24,15 @@ func (p *goPlugin) Name() string {
 func (p *goPlugin) Init(g *goku.Generator) {
 	p.Generator = g
 
-	p.loadPackages(g.Value("GoPackages"))
+	g.GetGlobalCtx().MergeFuncMap(goku.FuncMap{
+		"RegisterGoPackage": func(pkg string) *GoPackage {
+			return RegisterPackage(pkg, "")
+		},
+	})
 
+	p.loadPackages(g.Value("GoPackages"))
+	//p.Debug("GoPackages: %#v", g.Value("GoPackages"))
+	p.Debug("GoPackages: %s", helper.ShowJSON(globalPackages, 1))
 }
 
 func (p *goPlugin) BeforeExecute(ctx *goku.Context) {
@@ -42,16 +51,22 @@ func (p *goPlugin) loadPackages(v interface{}) {
 	if v == nil {
 		return
 	}
-	vv, ok := v.(map[string]interface{})
-	if !ok {
+
+	pv := reflect.Indirect(reflect.ValueOf(v))
+	if pv.Kind() != reflect.Map {
+		p.Warn("GoPackages NOT Map. got: %s", reflect.Indirect(pv).Type())
 		return
 	}
-	for name, line := range vv {
-		if pkgPath, ok := line.(string); ok {
-			globalPackages[name] = &GoPackage{
-				Name:       name,
-				ImportPath: pkgPath,
-			}
+	keys := pv.MapKeys()
+	for _, k := range keys {
+		val := pv.MapIndex(k)
+
+		name := k.Interface().(string)
+		pkgPath := val.Interface().(string)
+
+		globalPackages[name] = &GoPackage{
+			Name:       name,
+			ImportPath: pkgPath,
 		}
 	}
 }

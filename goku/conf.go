@@ -1,8 +1,8 @@
 package goku
 
 import (
-	"github.com/ghodss/yaml"
 	"github.com/v1990/protoc-gen-goku/helper"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"strconv"
 )
@@ -21,11 +21,16 @@ const (
 	LoopNestedEnum    Loop = "nested_enum"    // 嵌套在message中的enum
 )
 
+// TODO 宏的支持
+//      - 定义宏：NAME=name
+//		- 使用宏: {{#NAME}}
+// 或者把 Data 变为有序的
+
 type Config struct {
 	// 声明全局变量
 	//  - 支持模版解析
 	// 因为 map 是无序的，所以不可相互引用
-	Data Data
+	Data []Data
 	// 全局启用插件列表
 	Plugins []string
 	// 任务列表
@@ -45,7 +50,7 @@ type Job struct {
 	Template string
 	// 模板路径 - 支持模板解析
 	//  -- Template 为空时才会读取模板文件
-	TemplatePath string
+	TemplatePath string `yaml:"templatePath"`
 	// 输出文件路径
 	Out string
 	// 启用插件列表
@@ -53,7 +58,7 @@ type Job struct {
 	Plugins []string
 	// 任务级别的变量
 	// - 与全局的 Config.Data
-	Data Data
+	Data []Data
 }
 
 type Condition interface {
@@ -177,7 +182,7 @@ func (g *Generator) getConfig() Config {
 	}
 
 	if !helper.FileExists(filename) {
-
+		g.Fatal("config file not exists: %s", filename)
 	}
 
 	body, err := ioutil.ReadFile(filename)
@@ -185,6 +190,11 @@ func (g *Generator) getConfig() Config {
 
 	var conf Config
 	err = yaml.Unmarshal(body, &conf)
+	if err != nil {
+		tt := make(map[string]interface{})
+		yaml.Unmarshal(body, &tt)
+		g.Debug("conf: %s", helper.ShowJSON(tt))
+	}
 	g.FatalOnErr(err, "unmarshal conf[YAML]: %s", filename)
 
 	// TODO 配置检查

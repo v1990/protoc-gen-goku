@@ -30,7 +30,7 @@ type Generator struct {
 
 	// pb类型名称与实例的映射
 	// key: 完整的类型名称 .google.protobuf.FieldDescriptorProto.Label
-	// value: message(descriptorpb.DescriptorProto) or enum(descriptorpb.EnumDescriptorProto)
+	// value: message(descriptors.DescriptorProto) or enum(descriptors.EnumDescriptorProto)
 	typesByName map[string]descriptors.ProtoType
 
 	debug bool
@@ -52,7 +52,7 @@ func (g *Generator) Run(IN io.Reader, OUT io.Writer, ERR io.Writer) {
 	data, err := ioutil.ReadAll(IN)
 	g.FatalOnErr(err, "reading input")
 
-	ioutil.WriteFile("request.pb",data,0644)
+	ioutil.WriteFile("request.pb", data, 0644)
 
 	err = proto.Unmarshal(data, g.request)
 	g.FatalOnErr(err, "parsing input proto")
@@ -139,11 +139,15 @@ func (g *Generator) GetFileByName(protoFileName string) *descriptors.FileDescrip
 	return g.filesByName[protoFileName]
 }
 
+func (g *Generator) GetGlobalCtx() *Context {
+	return g.ctx
+}
+
 // 通过protoc格式的名称 获取 proto 对象；
 //  @param typeName .google.protobuf.FileDescriptorProto
 //  @return
-//  - message: *descriptorpb.DescriptorProto
-//  - enum: *descriptorpb.EnumDescriptorProto
+//  - message: *descriptors.DescriptorProto
+//  - enum: *descriptors.EnumDescriptorProto
 func (g *Generator) GetDescriptorByName(typeName string) descriptors.ProtoType {
 	return g.typesByName[typeName]
 }
@@ -182,7 +186,7 @@ func (g *Generator) WriteOutFile(filename string, content []byte) error {
 	// 默认输出到 stderr
 	switch filename {
 	case "", "stderr", "stdin":
-		_, err := fmt.Fprint(os.Stderr, string(content))
+		_, err := fmt.Fprint(os.Stderr, string(content)+"\n")
 		return err
 	}
 
@@ -222,9 +226,15 @@ func (g *Generator) populateCtx(ctx *Context) {
 func (g *Generator) Value(key interface{}) interface{} {
 	switch k := key.(type) {
 	case string:
-		if v, ok := g.conf.Data[k]; ok {
-			return v
+		for _, data := range g.conf.Data {
+			if v, ok := data[k]; ok {
+				return v
+			}
 		}
+		// FIXME:
+		//if v, ok := g.conf.Data[k]; ok {
+		//	return v
+		//}
 		if v, ok := g.params[k]; ok {
 			return v
 		}

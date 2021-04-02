@@ -20,6 +20,7 @@ import (
 	"fmt"
 	descriptor "github.com/golang/protobuf/protoc-gen-go/descriptor"
 	"github.com/v1990/protoc-gen-goku/helper"
+	"google.golang.org/protobuf/types/descriptorpb"
 	"log"
 	"strings"
 )
@@ -30,6 +31,11 @@ func NewFileDescriptorProto(file *descriptor.FileDescriptorProto) *FileDescripto
 	t := newFileDescriptorProto(file)
 	//t.setFile(t)
 	return t
+}
+
+type IFileBase interface {
+	// 当前对象所属文件
+	File() *FileDescriptorProto
 }
 
 // 每个结构都有的方法
@@ -80,8 +86,8 @@ type Nestable interface {
 }
 
 // proto的基本类型信息. 目前有以下struct实现了此interface
-// - message: DescriptorProto
-// - enum: EnumDescriptorProto
+// - message: IDescriptorProto(DescriptorProto)
+// - enum: IEnumDescriptorProto(EnumDescriptorProto)
 // See ProtoTypeDescriptors
 type ProtoType interface {
 	NamedDescriptor
@@ -361,4 +367,96 @@ func nestedTypeNames(d Nestable) []string {
 	}
 	names = helper.ReverseStrings(names)
 	return names
+}
+
+// DescriptorProto interface
+type IDescriptorProto interface {
+	ProtoType
+	Name() string
+	GetField() (ret []*FieldDescriptorProto)
+	Field() []*FieldDescriptorProto
+	GetExtension() (ret []*FieldDescriptorProto)
+	Extension() []*FieldDescriptorProto
+	GetNestedType() (ret []*DescriptorProto)
+	NestedType() []*DescriptorProto
+	GetEnumType() (ret []*EnumDescriptorProto)
+	EnumType() []*EnumDescriptorProto
+	GetExtensionRange() (ret []*DescriptorProto_ExtensionRange)
+	ExtensionRange() []*DescriptorProto_ExtensionRange
+	GetOneofDecl() (ret []*OneofDescriptorProto)
+	OneofDecl() []*OneofDescriptorProto
+	GetOptions() (ret *MessageOptions)
+	Options() *MessageOptions
+	GetReservedRange() (ret []*DescriptorProto_ReservedRange)
+	ReservedRange() []*DescriptorProto_ReservedRange
+	GetReservedName() (ret []string)
+	ReservedName() []string
+	PbDescriptor() *descriptorpb.DescriptorProto
+	DescriptorProto() *descriptorpb.DescriptorProto
+	IsNested() bool
+	ParentMessage() *DescriptorProto
+}
+
+// EnumDescriptorProto interface
+type IEnumDescriptorProto interface {
+	ProtoType
+	Name() string
+	GetValue() (ret []*EnumValueDescriptorProto)
+	Value() []*EnumValueDescriptorProto
+	GetOptions() (ret *EnumOptions)
+	Options() *EnumOptions
+	GetReservedRange() (ret []*EnumDescriptorProto_EnumReservedRange)
+	ReservedRange() []*EnumDescriptorProto_EnumReservedRange
+	GetReservedName() (ret []string)
+	ReservedName() []string
+	PbDescriptor() *descriptorpb.EnumDescriptorProto
+	EnumDescriptorProto() *descriptorpb.EnumDescriptorProto
+	MarshalJSON() (b []byte, err error)
+	IsNested() bool
+	ParentMessage() *DescriptorProto
+}
+
+// ServiceDescriptorProto interface
+type IServiceDescriptorProto interface {
+	GetName() (ret string)
+	Name() string
+	GetMethod() (ret []*MethodDescriptorProto)
+	Method() []*MethodDescriptorProto
+	GetOptions() (ret *ServiceOptions)
+	Options() *ServiceOptions
+	PbDescriptor() *descriptorpb.ServiceDescriptorProto
+	ServiceDescriptorProto() *descriptorpb.ServiceDescriptorProto
+	MarshalJSON() (b []byte, err error)
+	Empty() bool
+	Index() int
+	File() *FileDescriptorProto
+	Parent() DescriptorCommon
+	LocationPath() LocationPath
+	Comments() *SourceCodeInfo_Location
+}
+
+// MethodDescriptorProto interface
+type IMethodDescriptorProto interface {
+	GetName() (ret string)
+	Name() string
+	GetInputType() (ret string)
+	InputType() string
+	GetOutputType() (ret string)
+	OutputType() string
+	GetOptions() (ret *MethodOptions)
+	Options() *MethodOptions
+	GetClientStreaming() (ret bool)
+	ClientStreaming() bool
+	GetServerStreaming() (ret bool)
+	ServerStreaming() bool
+	PbDescriptor() *descriptorpb.MethodDescriptorProto
+	MethodDescriptorProto() *descriptorpb.MethodDescriptorProto
+	MarshalJSON() (b []byte, err error)
+	Empty() bool
+	Index() int
+	File() *FileDescriptorProto
+	Parent() DescriptorCommon
+	LocationPath() LocationPath
+	Comments() *SourceCodeInfo_Location
+	Service() *ServiceDescriptorProto
 }

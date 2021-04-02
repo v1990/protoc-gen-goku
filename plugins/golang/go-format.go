@@ -12,7 +12,6 @@ import (
 	"go/token"
 	"golang.org/x/tools/go/ast/astutil"
 	"golang.org/x/tools/imports"
-	"log"
 	"strconv"
 )
 
@@ -35,7 +34,7 @@ func NewGoFormatter(ctx *goku.Context) *GoFormatter {
 func (c *GoFormatter) Format() []byte {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Printf("[golang]format err:%s \n %s \n", err,
+			c.Warn("[golang]format err:%s \n %s \n", err,
 				string(c.lineIndex()))
 			panic(err)
 		}

@@ -70,7 +70,6 @@ func (g *Generator) executeJob(job Job, ctx *Context) {
 
 	g.populateCtx(ctx)
 	outFileName := ctx.MustEval(job.Out)
-
 	g.Debug("execute job : %-18s  %-25s  %-30s ==> %s",
 		"["+ctx.Loop()+"]", ObjectName(ctx.Object()), job.Name, outFileName)
 
@@ -86,8 +85,10 @@ func (g *Generator) executeJob(job Job, ctx *Context) {
 			tplFile = filepath.Join(g.params["templatePath"], tplFile)
 		}
 		tpl, err = template.New(filepath.Base(tplFile)).Funcs(ctx.tplFuncMap()).ParseFiles(tplFile)
+		g.FatalOnErr(err, "parse template: job: %s \n\t tplFile:%s \n\t TemplatePath:%s", job.Name, tplFile, job.TemplatePath)
+
 	}
-	g.FatalOnErr(err, "parse template: job: %s", job.Name)
+	g.FatalOnErr(err, "parse template: job: %s tplFile:%s TemplatePath", job.Name)
 
 	// 渲染模板
 	writer := bytes.NewBuffer(nil)

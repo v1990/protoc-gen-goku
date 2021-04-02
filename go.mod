@@ -16,4 +16,5 @@ require (
 	github.com/smartystreets/goconvey v1.6.4
 	golang.org/x/tools v0.0.0-20201123155928-5bad45943a20
 	google.golang.org/protobuf v1.25.0
+	gopkg.in/yaml.v2 v2.2.4
 )

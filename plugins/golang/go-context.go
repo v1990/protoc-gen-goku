@@ -63,6 +63,8 @@ func (c Context) GoTypeBase(v interface{}) string {
 	return c.GoType(v).Name()
 }
 
+// GoPackage 得到go包信息
+//  Value: *GoPackage|*GoType|string|*descriptors.FileDescriptorProto|descriptors.IFileBase
 func (c Context) GoPackage(value interface{}) *GoPackage {
 	switch v := value.(type) {
 	case *GoPackage:
@@ -73,9 +75,9 @@ func (c Context) GoPackage(value interface{}) *GoPackage {
 		return GetGoPackageByName(v)
 	case *descriptors.FileDescriptorProto:
 		return c.FileGoPackage(v)
-	case descriptors.DescriptorCommon:
+	case descriptors.IFileBase:
 		if f := v.File(); !f.Empty() {
-			return c.FileGoPackage(v.File())
+			return c.FileGoPackage(f)
 		}
 	}
 	return nil
@@ -193,9 +195,9 @@ func (c Context) PbType2GoType(pbType descriptors.ProtoType) *GoType {
 
 	pointer := false
 	switch pbType.(type) {
-	case *descriptors.DescriptorProto: // message 默认为指针
+	case descriptors.IDescriptorProto: // message 默认为指针
 		pointer = true
-	case *descriptors.EnumDescriptorProto: // enum 默认不需要指针
+	case descriptors.IEnumDescriptorProto: // enum 默认不需要指针
 		pointer = false
 	}
 
@@ -240,23 +242,28 @@ func toGoComments(src string) string {
 }
 
 // GoImport returns golang style import line string.
-func (c Context) GoImport(arg interface{}) string {
-	if arg == nil {
+func (c Context) GoImport(pkg interface{}, alias ...string) string {
+	if pkg == nil {
 		return ""
 	}
-	switch v := arg.(type) {
+	switch v := pkg.(type) {
 	case *GoPackage:
+		if len(alias) > 0 {
+			return v.ImportAlias(alias[0])
+		}
 		return v.Import()
+	case string:
+		return c.GoImport(c.GoPackage(v), alias...)
 	case *GoType:
 		return c.GoImport(v.pkg) // goto case *GoPackage
 	case *descriptors.FieldDescriptorProto:
-		return c.GoImport(c.PbField2GoType(v)) // goto case *GoType
+		return c.GoImport(c.PbField2GoType(v), alias...) // goto case *GoType
 	case *descriptors.FileDescriptorProto:
-		return c.GoImport(c.FileGoPackage(v)) // goto case *GoPackage
+		return c.GoImport(c.FileGoPackage(v), alias...) // goto case *GoPackage
 	case descriptors.ProtoType:
-		return c.GoImport(c.PbType2GoType(v)) // goto case *GoType
+		return c.GoImport(c.PbType2GoType(v), alias...) // goto case *GoType
 	}
-	c.ThrowsOnErr(errors.Errorf("failed to parse import: %#v", arg))
+	c.ThrowsOnErr(errors.Errorf("failed to parse import: %#v", pkg))
 	return ""
 }
 

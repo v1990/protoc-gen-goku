@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// GoPackage 包信息
+//  必须经过 RegisterPackage(ImportPath,Name) 注册后得到才能保证 Name 的唯一
+//  在模板中可使用 GoPackage 方法得到这个对象 (See Context.GoPackage)
 type GoPackage struct {
 	Name       string // 包 别名
 	ImportPath string // 包 全路径
@@ -17,9 +20,14 @@ func (p GoPackage) String() string {
 }
 
 func (p GoPackage) Import() string {
-	return p.Name + " " + strconv.Quote(string(p.ImportPath))
+	return p.ImportAlias(p.Name)
 }
 
+func (p GoPackage) ImportAlias(alias string) string {
+	return alias + " " + strconv.Quote(string(p.ImportPath))
+}
+
+// GoType Go 类型
 type GoType struct {
 	name     string     // 基本类型名，
 	repeated bool       // 是否数组
