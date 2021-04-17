@@ -39,7 +39,10 @@ func (args Args) Bool(index int, def bool) bool {
 
 func (args Args) Len() int { return len(args) }
 
-func (args Args) First() interface{} {
+func (args Args) First(def_ ...interface{}) interface{} {
+	if len(def_) > 0 {
+		return args.Def(0, def_[0])
+	}
 	return args.Def(0, nil)
 }
 func (args Args) Last() interface{} {

@@ -88,7 +88,7 @@ func (g *Generator) executeJob(job Job, ctx *Context) {
 		g.FatalOnErr(err, "parse template: job: %s \n\t tplFile:%s \n\t TemplatePath:%s", job.Name, tplFile, job.TemplatePath)
 
 	}
-	g.FatalOnErr(err, "parse template: job: %s tplFile:%s TemplatePath", job.Name)
+	g.FatalOnErr(err, "parse template: job: %s", job.Name)
 
 	// 渲染模板
 	writer := bytes.NewBuffer(nil)

@@ -30,8 +30,10 @@ type Generator struct {
 
 	// pb类型名称与实例的映射
 	// key: 完整的类型名称 .google.protobuf.FieldDescriptorProto.Label
-	// value: message(descriptors.DescriptorProto) or enum(descriptors.EnumDescriptorProto)
+	// value: message(descriptors.IDescriptorProto) or enum(descriptors.IEnumDescriptorProto)
 	typesByName map[string]descriptors.ProtoType
+
+	services []descriptors.IServiceDescriptorProto
 
 	debug bool
 }
@@ -112,23 +114,27 @@ func (g *Generator) wrapAllFiles(files []*descriptorpb.FileDescriptorProto) {
 		g.filesByName[file.GetName()] = file
 
 		for _, m := range file.GetMessageType() {
-			g.recordType(m)
+			g.collectType(m)
 			for _, mm := range m.GetNestedType() {
-				g.recordType(mm)
+				g.collectType(mm)
 			}
 			for _, mm := range m.GetEnumType() {
-				g.recordType(mm)
+				g.collectType(mm)
 			}
 		}
 		for _, m := range file.GetEnumType() {
-			g.recordType(m)
+			g.collectType(m)
+		}
+
+		for _, s := range file.Service() {
+			g.services = append(g.services, s)
 		}
 	}
 }
-func (g *Generator) recordType(t descriptors.ProtoType) {
+func (g *Generator) collectType(t descriptors.ProtoType) {
 	name := t.ProtoType().FullTypeName()
 	g.typesByName[name] = t
-	//g.Debug("recordType: %-60s ==> [%T]%s", name, t, t.GetName())
+	//g.Debug("collectType: %-60s ==> [%T]%s", name, t, t.GetName())
 }
 
 func (g *Generator) GetObject(typeName string) descriptors.ProtoType {
@@ -161,6 +167,11 @@ func (g *Generator) MustGetDescriptorByName(typeName string) descriptors.ProtoTy
 func (g *Generator) EachType(f func(name string, obj descriptors.ProtoType)) {
 	for name, obj := range g.typesByName {
 		f(name, obj)
+	}
+}
+func (g *Generator) EachService(f func(s descriptors.IServiceDescriptorProto)) {
+	for _, s := range g.services {
+		f(s)
 	}
 }
 

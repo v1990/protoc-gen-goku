@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/gogo/protobuf/jsonpb"
 	"github.com/gogo/protobuf/proto"
+	"github.com/v1990/protoc-gen-goku/helper/dump"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -47,6 +48,8 @@ var Functions = map[string]interface{}{
 	"withLinePrefix": WithLinePrefix,
 	"withLineSuffix": WithLineSuffix,
 	"withLineSlash":  WithLineSlash,
+	"dump":           dump.Dump,
+	"dump2":          dump.Dump2,
 }
 
 func RegisterFuncMap(functions map[string]interface{}) {

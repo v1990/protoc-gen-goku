@@ -4,7 +4,7 @@
 package descriptors
 
 import (
-	descriptorpb "google.golang.org/protobuf/types/descriptorpb"
+	"google.golang.org/protobuf/types/descriptorpb"
 )
 
 // FieldOptions_JSType

@@ -411,7 +411,7 @@ type IEnumDescriptorProto interface {
 	ReservedName() []string
 	PbDescriptor() *descriptorpb.EnumDescriptorProto
 	EnumDescriptorProto() *descriptorpb.EnumDescriptorProto
-	MarshalJSON() (b []byte, err error)
+	//MarshalJSON() (b []byte, err error)
 	IsNested() bool
 	ParentMessage() *DescriptorProto
 }
@@ -426,7 +426,7 @@ type IServiceDescriptorProto interface {
 	Options() *ServiceOptions
 	PbDescriptor() *descriptorpb.ServiceDescriptorProto
 	ServiceDescriptorProto() *descriptorpb.ServiceDescriptorProto
-	MarshalJSON() (b []byte, err error)
+	//MarshalJSON() (b []byte, err error)
 	Empty() bool
 	Index() int
 	File() *FileDescriptorProto
@@ -451,7 +451,7 @@ type IMethodDescriptorProto interface {
 	ServerStreaming() bool
 	PbDescriptor() *descriptorpb.MethodDescriptorProto
 	MethodDescriptorProto() *descriptorpb.MethodDescriptorProto
-	MarshalJSON() (b []byte, err error)
+	//MarshalJSON() (b []byte, err error)
 	Empty() bool
 	Index() int
 	File() *FileDescriptorProto

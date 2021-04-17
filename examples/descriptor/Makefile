@@ -20,7 +20,7 @@ gen: install
 	protoc -I proto --goku_out=debug=$(DEBUG),conf=$(CONF),workPath=$(WORK_PATH),outPath=$(TMP_PATH),outPkgName=$(OUT_PKG_NAME):. proto/google/protobuf/descriptor.proto
 	#cd $(TMP_PATH) && go vet ./...
 	cd $(ROOT) && go vet ./...
-	#cat $(TMP_PATH)/FieldDescriptorProto.goku.pb.go
+	@#cat $(TMP_PATH)/FieldDescriptorProto.goku.pb.go
 usage: install
 	protoc -I proto --goku_out=debug=$(DEBUG),conf=usage.config.yaml,workPath=$(WORK_PATH),outPath=$(TMP_PATH),outPkgName=$(OUT_PKG_NAME):. proto/google/protobuf/descriptor.proto
 gen_descriptors:

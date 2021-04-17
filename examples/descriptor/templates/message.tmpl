@@ -15,13 +15,13 @@
 
 package {{.outPkg}}
 
-{{- $pbPkg := GoPackage "descriptorpb"|GoMarkImport }}
-{{- $bytesPkg := GoPackage "bytes"|GoMarkImport }}
-{{- $jsonPbPkg := GoPackage "github.com/gogo/protobuf/jsonpb"|GoMarkImport }}
+{{- $pbPkg := "descriptorpb"}}
+{{- $bytesPkg := "bytes" }}
+{{- $jsonPbPkg := "jsonpb" }}
 import (
-    {{$pbPkg.Import}}
-    {{$bytesPkg.Import}}
-    {{$jsonPbPkg.Import}}
+    {{GoImport "descriptorpb"}}
+    {{GoImport "bytes"}}
+    {{GoImport "jsonpb"}}
 )
 
 
@@ -128,7 +128,7 @@ func (t *{{$StructName}})PbDescriptor()*{{$pbPkg}}.{{$StructName}}{
 func (t *{{$StructName}}){{$StructName}}()*{{$pbPkg}}.{{$StructName}}{
     return t.PbDescriptor()
 }
-
+/*
 func (t *{{$StructName}}) MarshalJSON() (b []byte,err error) {
     if t.Empty() {
         return
@@ -136,6 +136,17 @@ func (t *{{$StructName}}) MarshalJSON() (b []byte,err error) {
     buf := {{$bytesPkg}}.NewBuffer(nil)
     err = (&{{$jsonPbPkg}}.Marshaler{}).Marshal(buf, t.pb)
     return buf.Bytes(), err
+}
+*/
+
+// ExportFields returns can export fields
+func (t *{{$StructName}})ExportFields()map[string]interface{}{
+    return map[string]interface{}{
+        {{- range $Message.Field}}  {{- $FieldName := camelcase .Name}}
+        "{{$FieldName}}": t.{{$FieldName}}(),
+        {{- end}}
+        "Index": t.Index(),
+    }
 }
 
 

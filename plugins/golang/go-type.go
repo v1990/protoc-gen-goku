@@ -24,6 +24,9 @@ func (p GoPackage) Import() string {
 }
 
 func (p GoPackage) ImportAlias(alias string) string {
+	if helper.BaseName(p.ImportPath) == alias {
+		return strconv.Quote(string(p.ImportPath))
+	}
 	return alias + " " + strconv.Quote(string(p.ImportPath))
 }
 
@@ -36,6 +39,14 @@ type GoType struct {
 	pkg      *GoPackage // 包信息
 }
 
+func (t *GoType) Elem() *GoType {
+	if t == nil {
+		return nil
+	}
+	tt := *t // copy
+	tt.pointer = false
+	return &tt
+}
 func (t *GoType) Package() *GoPackage {
 	if t == nil {
 		return nil

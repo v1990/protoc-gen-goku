@@ -5,6 +5,10 @@ import (
 	"github.com/v1990/protoc-gen-goku/descriptors"
 	"github.com/v1990/protoc-gen-goku/goku"
 	"github.com/v1990/protoc-gen-goku/helper"
+	"github.com/visualfc/fastmod"
+	"go/build"
+	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -36,6 +40,8 @@ func (c Context) FuncMap() goku.FuncMap {
 		"GoImport":           c.GoImport,
 		"GoImportDependency": c.GoImportDependency,
 		"GoMarkImport":       c.GoMarkImport,
+		"FindGoMod":          c.FindGoMod,
+		"Path2GoPackage":     c.Path2GoPackage,
 	}
 }
 
@@ -241,7 +247,12 @@ func toGoComments(src string) string {
 	return helper.WithLineSlash(src)
 }
 
-// GoImport returns golang style import line string.
+// GoImport 生成import语句内容
+//  @param pkg 包名，如果已经定义在config文件中的`GoPackages`变量中，可以直接使用其名称
+//  @param alias 别名，可选，仅在当前文件生效
+//  Examples:
+//		{{GoImport "context"}}  =>  "context"
+// 		{{GoImport "github.com/golang/protobuf/proto" "pb"}} =>  "pb" "github.com/golang/protobuf/proto"
 func (c Context) GoImport(pkg interface{}, alias ...string) string {
 	if pkg == nil {
 		return ""
@@ -300,4 +311,24 @@ func (c Context) GoImportDependency(arg interface{}) string {
 
 	c.ThrowsOnErr(errors.Errorf("GoImportDependency: unsupport arg: %T", arg))
 	return ""
+}
+func (c Context) FindGoMod(wd_ ...string) *fastmod.Package {
+	wd := "."
+	if len(wd_) > 0 {
+		wd = wd_[0]
+	}
+	pkg, err := fastmod.LoadPackage(wd, &build.Default)
+	c.FatalOnErr(err, "FindGoMod(%s):  maybe missing go.mod in this dir.check `go env GOMOD`", wd)
+	return pkg
+}
+
+// 将本地目录转为对应的go包路径
+func (c Context) Path2GoPackage(dir string) string {
+	dir, _ = filepath.Abs(dir)
+
+	pkg := c.FindGoMod(dir)
+	modDir := pkg.Root.ModDir()
+	modDir, _ = filepath.Abs(modDir)
+
+	return path.Join(pkg.Root.Path(), strings.Replace(dir, modDir, "", -1))
 }
